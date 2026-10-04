@@ -149,3 +149,10 @@ TOUS = TOUS + (
     MODIFICATION_RECAP_QUESTION, MODIFICATION_ANNULEE, PROFIL_A_JOUR, PROFIL_INCHANGE,
     *(libelle for _, libelle in CHOIX_PROFIL), *(libelle for _, libelle in CHOIX_RECAP_MODIFICATION),
 )
+
+
+# --- Rappels (lot 7) ------------------------------------------------------------------------
+
+RAPPEL = "Rappel : « {titre} » — {periode}."
+
+TOUS = TOUS + (RAPPEL,)

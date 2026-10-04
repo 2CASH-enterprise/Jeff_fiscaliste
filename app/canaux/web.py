@@ -70,6 +70,7 @@ def envoyer_message(
         {
             "reponse": reponse.texte,
             "choix": [{"valeur": v, "libelle": l} for v, l in reponse.choix],
+            "rappels": reponse.rappels,
         }
     )
 

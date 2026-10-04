@@ -48,6 +48,7 @@
         ajouterBulle(donnees.detail || "Une erreur est survenue. Réessayez.", "sortant", "jeff-erreur");
         return;
       }
+      (donnees.rappels || []).forEach(function (r) { ajouterBulle(r, "sortant", "jeff-rappel"); });
       ajouterBulle(donnees.reponse, "sortant");
       afficherChoix(donnees.choix);
     } catch (e) {

@@ -20,6 +20,7 @@ from app.conversation.models import (
 from app.conversation.normalisation import normaliser
 from app.conversation.reponse import Reponse
 from app.entreprises.models import Entreprise
+from app.rappels.livraison import rappels_a_remettre
 
 LONGUEUR_MAX = 2000
 
@@ -122,8 +123,12 @@ def traiter_message(session: Session, canal: str, identifiant: str, texte: str) 
     if texte is None or not texte.strip():
         raise MessageVide("Le message est vide.")
     conversation = trouver_ou_creer_conversation(session, canal, identifiant)
+    rappels = rappels_a_remettre(session, conversation)
     reponse = decider(session, conversation, texte)
+    reponse.rappels = rappels
     session.add(Message(conversation_id=conversation.id, sens=ENTRANT, texte=texte[:LONGUEUR_MAX]))
+    for rappel in rappels:
+        session.add(Message(conversation_id=conversation.id, sens=SORTANT, texte=rappel))
     session.add(Message(conversation_id=conversation.id, sens=SORTANT, texte=reponse.texte))
     session.flush()
     return reponse

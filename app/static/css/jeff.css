@@ -72,6 +72,7 @@ body { background: var(--jeff-fond); }
   color: var(--jeff-texte-client);
   border-bottom-right-radius: 4px;
 }
+.jeff-rappel { border-left: 4px solid var(--jeff-primaire); }
 .jeff-attente { opacity: .6; font-style: italic; }
 .jeff-erreur { border-color: #dc3545; color: #dc3545; }
 

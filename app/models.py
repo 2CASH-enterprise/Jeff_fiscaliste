@@ -2,7 +2,8 @@
 from app.conversation.models import Conversation, Message, Parcours
 from app.core.db import Base
 from app.entreprises.models import Entreprise, ModificationEntreprise
+from app.rappels.models import Rappel
 from app.referentiel.models import Juridiction
 from app.regles.models import Regle
 
-__all__ = ["Base", "Conversation", "Entreprise", "Juridiction", "Message", "ModificationEntreprise", "Parcours", "Regle"]
+__all__ = ["Base", "Conversation", "Entreprise", "Juridiction", "Message", "ModificationEntreprise", "Parcours", "Rappel", "Regle"]

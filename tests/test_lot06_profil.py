@@ -449,5 +449,4 @@ def test_parcours_complet_dans_la_bulle(essai):
 
 
 def test_version():
-    assert VERSION == "0.6.0"
-    assert TestClient(app).get("/sante").json()["version"] == "0.6.0"
+    assert TestClient(app).get("/sante").json()["version"] == VERSION
