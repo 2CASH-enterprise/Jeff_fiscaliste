@@ -69,8 +69,7 @@ NE_SAIS_PAS = "Je ne sais pas"
 A_COMPLETER = "À compléter"
 BIENVENUE = (
     "C'est enregistré, merci ! Le profil de « {raison_sociale} » est créé. "
-    "Je pourrai bientôt vous indiquer vos obligations fiscales et sociales. "
-    "Que souhaitez-vous faire ?"
+    "Choisissez « Voir mes obligations » pour connaître vos obligations fiscales et sociales."
 )
 
 TOUS = TOUS + (
@@ -80,4 +79,28 @@ TOUS = TOUS + (
     ERR_TEXTE_COURT, ERR_TEXTE_LONG, ERR_NIU, NIU_DEJA_CONNU, ERR_CHOIX, ERR_MONTANT, ERR_NOMBRE,
     ERR_CNPS, RECAP_INTRO, RECAP_QUESTION, CORRECTION, NE_SAIS_PAS, A_COMPLETER, BIENVENUE,
     *(libelle for _, libelle in CHOIX_PROPOSITION), *(libelle for _, libelle in CHOIX_RECAP),
+)
+
+
+# --- Obligations (lot 4) ------------------------------------------------------------------
+
+OBLIGATIONS_INTRO = "Voici les obligations de « {raison_sociale} » d'après votre profil :"
+OBLIGATIONS_A_CONFIRMER = "À confirmer, selon vos réponses « je ne sais pas » :"
+OBLIGATIONS_ALERTES = "Points à vérifier :"
+OBLIGATIONS_AUCUNE = (
+    "Je n'ai trouvé aucune obligation pour votre profil dans mes règles actuelles. "
+    "Elles sont encore en cours d'enrichissement."
+)
+OBLIGATIONS_AVERTISSEMENT = (
+    "Ces informations sont en cours de validation par notre fiscaliste : "
+    "vérifiez-les avant toute démarche."
+)
+OBLIGATIONS_ECHEANCE = "Échéance : {echeance}"
+OBLIGATIONS_SOURCE = "Source : {source}"
+A_CONFIRMER = "à confirmer"
+SOURCE_A_COMPLETER = "à compléter"
+
+TOUS = TOUS + (
+    OBLIGATIONS_INTRO, OBLIGATIONS_A_CONFIRMER, OBLIGATIONS_ALERTES, OBLIGATIONS_AUCUNE,
+    OBLIGATIONS_AVERTISSEMENT, OBLIGATIONS_ECHEANCE, OBLIGATIONS_SOURCE, A_CONFIRMER, SOURCE_A_COMPLETER,
 )

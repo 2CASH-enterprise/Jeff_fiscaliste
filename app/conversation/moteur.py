@@ -7,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.conversation import messages_fixes as mf
-from app.conversation import onboarding
+from app.conversation import obligations, onboarding
 from app.conversation.models import (
     ABANDONNE,
     EN_COURS,
@@ -19,6 +19,7 @@ from app.conversation.models import (
 )
 from app.conversation.normalisation import normaliser
 from app.conversation.reponse import Reponse
+from app.entreprises.models import Entreprise
 
 LONGUEUR_MAX = 2000
 
@@ -26,6 +27,7 @@ SALUTATIONS = {"bonjour", "bonsoir", "salut", "hello", "coucou", "bjr", "slt", "
 
 # Choix du menu qui demandent de connaître l'entreprise.
 CHOIX_AVEC_PROFIL = {"1", "2", "3"}
+CHOIX_OBLIGATIONS = "2"
 
 __all__ = ["LONGUEUR_MAX", "MessageVide", "Reponse", "historique", "normaliser", "repondre", "traiter_message"]
 
@@ -77,6 +79,10 @@ def decider(session: Session, conversation: Conversation, texte: str) -> Reponse
 
     if sans_profil and mots in CHOIX_AVEC_PROFIL and parcours is None:
         return onboarding.demarrer(session, conversation)
+
+    if not sans_profil and mots == CHOIX_OBLIGATIONS:
+        entreprise = session.get(Entreprise, conversation.entreprise_id)
+        return obligations.voir_obligations(session, entreprise)
 
     return repondre(texte)
 
