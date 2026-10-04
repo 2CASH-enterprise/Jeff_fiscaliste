@@ -1,0 +1,9 @@
+{
+  "commentaire": "Fêtes musulmanes fériées au Cameroun. Les dates sont fixées chaque année par les autorités selon l'observation de la lune : celles marquées « estimee » sont à remplacer par la date officielle dès son annonce.",
+  "feries": [
+    {"date": "2026-03-20", "nom": "Djouldé Soumaé (fin du ramadan)", "statut": "estimee"},
+    {"date": "2026-05-27", "nom": "Djouldé Kaïrou (fête du mouton)", "statut": "estimee"},
+    {"date": "2027-03-10", "nom": "Djouldé Soumaé (fin du ramadan)", "statut": "estimee"},
+    {"date": "2027-05-17", "nom": "Djouldé Kaïrou (fête du mouton)", "statut": "estimee"}
+  ]
+}

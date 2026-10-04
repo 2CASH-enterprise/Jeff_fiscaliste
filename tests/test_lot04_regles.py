@@ -138,11 +138,12 @@ def fichier(*regles):
 def test_le_fichier_du_cameroun_se_charge(session):
     bilan = charger_fichier(session, FICHIER_CM)
     donnees = json.loads(FICHIER_CM.read_text())
-    assert len(bilan.ajoutees) + len(bilan.inchangees) == len(donnees["regles"]) == 7
+    # 8 depuis le lot 5 : la TVA a une version 2 (échéance calculable).
+    assert len(bilan.ajoutees) + len(bilan.inchangees) == len(donnees["regles"]) == 8
     # Rechargé une seconde fois : rien ne change.
     deuxieme = charger_fichier(session, FICHIER_CM)
     assert deuxieme.ajoutees == [] and deuxieme.statut_modifie == []
-    assert len(deuxieme.inchangees) == 7
+    assert len(deuxieme.inchangees) == 8
 
 
 def test_toutes_les_regles_du_cameroun_sont_a_valider():
@@ -359,7 +360,8 @@ def test_affichage_ets_boss(session):
     reponse = voir_obligations(session, e)
     texte = reponse.texte
     assert texte.startswith(mf.OBLIGATIONS_INTRO.format(raison_sociale="Test SARL"))
-    assert "• Déclaration et paiement mensuels de la TVA\n  Chaque mois · Échéance : avant le 15 du mois suivant" in texte
+    # Libellé de la version 2 (lot 5).
+    assert "• Déclaration et paiement mensuels de la TVA\n  Chaque mois · Échéance : au plus tard le 15 du mois suivant" in texte
     assert "Source : Fiche TVA de la Direction générale des impôts" in texte
     assert "Source : Code général des impôts ; modalités de paiement revues par la loi de finances 2026, CGI art. 21 bis (à vérifier)" in texte
     assert "• Patente\n  Chaque année · Échéance : à confirmer" in texte
@@ -403,8 +405,8 @@ def test_choix_2_du_menu_avec_profil(session):
     session.flush()
     reponse = traiter_message(session, CANAL_WEB, identifiant, "2")
     assert reponse.texte.startswith(mf.OBLIGATIONS_INTRO.format(raison_sociale="Test SARL"))
-    # Les autres choix restent « bientôt disponibles ».
-    assert traiter_message(session, CANAL_WEB, identifiant, "3").texte == mf.BIENTOT.format(libelle="Voir mes échéances")
+    # Le choix 1 reste « bientôt disponible » (le 3 affiche les échéances depuis le lot 5).
+    assert traiter_message(session, CANAL_WEB, identifiant, "1").texte == mf.BIENTOT.format(libelle="Préparer ma déclaration")
 
 
 def test_choix_2_sans_profil_lance_toujours_l_onboarding(session):

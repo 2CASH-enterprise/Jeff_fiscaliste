@@ -104,3 +104,23 @@ TOUS = TOUS + (
     OBLIGATIONS_INTRO, OBLIGATIONS_A_CONFIRMER, OBLIGATIONS_ALERTES, OBLIGATIONS_AUCUNE,
     OBLIGATIONS_AVERTISSEMENT, OBLIGATIONS_ECHEANCE, OBLIGATIONS_SOURCE, A_CONFIRMER, SOURCE_A_COMPLETER,
 )
+
+
+# --- Échéances (lot 5) ---------------------------------------------------------------------
+
+ECHEANCES_INTRO = "Voici les prochaines échéances de « {raison_sociale} » :"
+ECHEANCES_LIGNE = "Au plus tard le {date} ({delai})"
+ECHEANCES_WEEK_END = "Attention : cette date tombe un {jour}. Anticipez votre démarche."
+ECHEANCES_FERIE = "Attention : cette date tombe un jour férié ({nom}). Anticipez votre démarche."
+ECHEANCES_SANS_DATE = "Date à confirmer :"
+ECHEANCES_PONCTUELLES = "À faire dès que possible :"
+ECHEANCES_A_CONFIRMER = "À confirmer, selon vos réponses « je ne sais pas » :"
+ECHEANCES_AUCUNE = (
+    "Je n'ai trouvé aucune échéance pour votre profil dans mes règles actuelles. "
+    "Elles sont encore en cours d'enrichissement."
+)
+
+TOUS = TOUS + (
+    ECHEANCES_INTRO, ECHEANCES_LIGNE, ECHEANCES_WEEK_END, ECHEANCES_FERIE, ECHEANCES_SANS_DATE,
+    ECHEANCES_PONCTUELLES, ECHEANCES_A_CONFIRMER, ECHEANCES_AUCUNE,
+)

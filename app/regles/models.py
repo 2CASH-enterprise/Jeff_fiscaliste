@@ -45,6 +45,8 @@ class Regle(Base):
     condition: Mapped[dict] = mapped_column(JSONB)
     periodicite: Mapped[str | None] = mapped_column(String(20), default=None)
     echeance: Mapped[str | None] = mapped_column(String(200), default=None)
+    # Échéance calculable (lot 5), voir app/calendrier/dates.py ; absente = « date à confirmer ».
+    echeance_calcul: Mapped[dict | None] = mapped_column(JSONB, default=None)
     source_texte: Mapped[str | None] = mapped_column(String(300), default=None)
     source_article: Mapped[str | None] = mapped_column(String(100), default=None)
     source_url: Mapped[str | None] = mapped_column(String(500), default=None)

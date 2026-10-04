@@ -1,6 +1,6 @@
 {
   "juridiction": "CM",
-  "commentaire": "Règles du Cameroun. Toute règle est « a_valider » tant que le fiscaliste ne l'a pas relue. Une règle déjà chargée ne se modifie pas : on crée une nouvelle version. Seul le statut peut changer.",
+  "commentaire": "Règles du Cameroun. Toute règle est « a_valider » tant que le fiscaliste ne l'a pas relue. Une règle déjà chargée ne se modifie pas : on crée une nouvelle version. Seul le statut peut changer. Lot 5 : TVA version 2 = échéance calculable (le 15) et libellé « au plus tard le 15 » ; la version 1 reste pour l'historique.",
   "regles": [
     {
       "code": "TVA_DECLARATION_MENSUELLE",
@@ -9,7 +9,11 @@
       "impot": "TVA",
       "titre": "Déclaration et paiement mensuels de la TVA",
       "description": "Vous reversez chaque mois la TVA collectée sur vos ventes, après déduction de la TVA payée sur vos achats lorsque vous y avez droit.",
-      "condition": {"champ": "assujetti_tva_declare", "op": "egal", "valeur": true},
+      "condition": {
+        "champ": "assujetti_tva_declare",
+        "op": "egal",
+        "valeur": true
+      },
       "periodicite": "mensuelle",
       "echeance": "avant le 15 du mois suivant",
       "source_texte": "Fiche TVA de la Direction générale des impôts",
@@ -19,13 +23,44 @@
       "ordre": 10
     },
     {
+      "code": "TVA_DECLARATION_MENSUELLE",
+      "version": 2,
+      "type": "obligation",
+      "impot": "TVA",
+      "titre": "Déclaration et paiement mensuels de la TVA",
+      "description": "Vous reversez chaque mois la TVA collectée sur vos ventes, après déduction de la TVA payée sur vos achats lorsque vous y avez droit.",
+      "condition": {
+        "champ": "assujetti_tva_declare",
+        "op": "egal",
+        "valeur": true
+      },
+      "periodicite": "mensuelle",
+      "echeance": "au plus tard le 15 du mois suivant",
+      "source_texte": "Fiche TVA de la Direction générale des impôts",
+      "source_url": "https://impots.cm/sites/default/files/documents/FICHE%20TVA.pdf",
+      "applicable_du": "2026-01-01",
+      "statut": "a_valider",
+      "ordre": 10,
+      "echeance_calcul": {
+        "type": "jour_du_mois_suivant",
+        "jour": 15
+      }
+    },
+    {
       "code": "ACOMPTE_MENSUEL_IMPOT",
       "version": 1,
       "type": "obligation",
       "impot": "IS / IRPP",
       "titre": "Acompte mensuel d'impôt sur le chiffre d'affaires",
       "description": "Acompte calculé chaque mois sur votre chiffre d'affaires, imputé ensuite sur l'impôt annuel (impôt sur les sociétés ou IRPP).",
-      "condition": {"champ": "regime_declare", "op": "dans", "valeur": ["reel", "simplifie"]},
+      "condition": {
+        "champ": "regime_declare",
+        "op": "dans",
+        "valeur": [
+          "reel",
+          "simplifie"
+        ]
+      },
       "periodicite": "mensuelle",
       "source_texte": "Code général des impôts ; modalités de paiement revues par la loi de finances 2026",
       "source_article": "CGI art. 21 bis (à vérifier)",
@@ -41,7 +76,11 @@
       "impot": "Impôt libératoire",
       "titre": "Paiement trimestriel de l'impôt libératoire",
       "description": "Au régime de l'impôt libératoire, vous payez un impôt forfaitaire chaque trimestre.",
-      "condition": {"champ": "regime_declare", "op": "egal", "valeur": "liberatoire"},
+      "condition": {
+        "champ": "regime_declare",
+        "op": "egal",
+        "valeur": "liberatoire"
+      },
       "periodicite": "trimestrielle",
       "applicable_du": "2026-01-01",
       "statut": "a_valider",
@@ -54,7 +93,14 @@
       "impot": "Patente",
       "titre": "Patente",
       "description": "Impôt local annuel dû pour l'exercice d'une activité professionnelle.",
-      "condition": {"champ": "regime_declare", "op": "dans", "valeur": ["reel", "simplifie"]},
+      "condition": {
+        "champ": "regime_declare",
+        "op": "dans",
+        "valeur": [
+          "reel",
+          "simplifie"
+        ]
+      },
       "periodicite": "annuelle",
       "source_texte": "Loi n° 2024/020 du 23 décembre 2024 portant fiscalité locale",
       "applicable_du": "2026-01-01",
@@ -68,7 +114,11 @@
       "impot": "IRPP salaires / CNPS",
       "titre": "Retenues sur salaires et déclaration mensuelle des salaires (DIPE)",
       "description": "Chaque mois, vous déclarez les salaires versés, reversez l'impôt retenu sur les salaires et payez les cotisations sociales.",
-      "condition": {"champ": "nombre_salaries", "op": "superieur", "valeur": 0},
+      "condition": {
+        "champ": "nombre_salaries",
+        "op": "superieur",
+        "valeur": 0
+      },
       "periodicite": "mensuelle",
       "applicable_du": "2026-01-01",
       "statut": "a_valider",
@@ -81,10 +131,19 @@
       "impot": "CNPS",
       "titre": "Immatriculation de l'employeur et des salariés à la CNPS",
       "description": "Votre profil indique des salariés mais pas de numéro d'employeur CNPS. Si vous n'êtes pas encore immatriculé, faites-le auprès de la CNPS ; sinon, complétez votre profil.",
-      "condition": {"tous": [
-        {"champ": "nombre_salaries", "op": "superieur", "valeur": 0},
-        {"champ": "numero_employeur_cnps", "op": "est_vide"}
-      ]},
+      "condition": {
+        "tous": [
+          {
+            "champ": "nombre_salaries",
+            "op": "superieur",
+            "valeur": 0
+          },
+          {
+            "champ": "numero_employeur_cnps",
+            "op": "est_vide"
+          }
+        ]
+      },
       "periodicite": "ponctuelle",
       "source_url": "https://www.cnps.cm",
       "applicable_du": "2026-01-01",
@@ -98,10 +157,20 @@
       "impot": "TVA",
       "titre": "Régime simplifié et TVA",
       "description": "Vous avez déclaré à la fois le régime simplifié et l'assujettissement à la TVA. Ce cas mérite une vérification : la fiche TVA de la DGI réserve la déduction de la TVA au régime du réel. Vérifiez votre régime et votre statut TVA, puis corrigez votre profil si besoin.",
-      "condition": {"tous": [
-        {"champ": "regime_declare", "op": "egal", "valeur": "simplifie"},
-        {"champ": "assujetti_tva_declare", "op": "egal", "valeur": true}
-      ]},
+      "condition": {
+        "tous": [
+          {
+            "champ": "regime_declare",
+            "op": "egal",
+            "valeur": "simplifie"
+          },
+          {
+            "champ": "assujetti_tva_declare",
+            "op": "egal",
+            "valeur": true
+          }
+        ]
+      },
       "source_texte": "Fiche TVA de la Direction générale des impôts",
       "source_url": "https://impots.cm/sites/default/files/documents/FICHE%20TVA.pdf",
       "applicable_du": "2026-01-01",

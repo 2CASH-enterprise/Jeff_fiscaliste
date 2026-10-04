@@ -14,12 +14,17 @@ from pathlib import Path
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.calendrier.dates import EcheanceInvalide
+from app.calendrier.dates import valider as valider_echeance
 from app.referentiel.models import Juridiction
 from app.regles.conditions import ConditionInvalide, valider
 from app.regles.models import PERIODICITES, STATUTS, TYPES, Regle
 
 REQUIS = {"code", "version", "type", "impot", "titre", "description", "condition", "applicable_du", "statut"}
-OPTIONNELS = {"periodicite", "echeance", "source_texte", "source_article", "source_url", "applicable_au", "ordre"}
+OPTIONNELS = {
+    "periodicite", "echeance", "echeance_calcul", "source_texte", "source_article", "source_url",
+    "applicable_au", "ordre",
+}
 CONTENU = (REQUIS | OPTIONNELS) - {"statut"}
 
 
@@ -79,6 +84,11 @@ def verifier_regle(brute: dict, position: int) -> tuple[dict, list[str]]:
         valider(brute["condition"])
     except ConditionInvalide as erreur:
         erreurs.append(f"{nom} : condition invalide : {erreur}")
+    if brute.get("echeance_calcul") is not None:
+        try:
+            valider_echeance(brute["echeance_calcul"], periodicite)
+        except EcheanceInvalide as erreur:
+            erreurs.append(f"{nom} : échéance calculable invalide : {erreur}")
 
     du = lire_date(brute["applicable_du"], f"{nom} applicable_du", erreurs)
     au = None
