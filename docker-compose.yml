@@ -1,0 +1,68 @@
+# Jeff — services Docker. Le nom de projet "jeff" isole conteneurs, réseau et volumes
+# de ceux des autres projets du serveur (dont Bob).
+name: jeff
+
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: jeff
+      POSTGRES_USER: jeff
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD manquant dans .env}
+    volumes:
+      - jeff_db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jeff -d jeff"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - jeff_redis:/data
+
+  api:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://jeff:${POSTGRES_PASSWORD}@db:5432/jeff
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    # Accessible uniquement depuis le serveur lui-même tant qu'il n'y a pas de HTTPS.
+    ports:
+      - "127.0.0.1:${JEFF_PORT:-8010}:8000"
+
+  worker:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://jeff:${POSTGRES_PASSWORD}@db:5432/jeff
+      REDIS_URL: redis://redis:6379/0
+    command: celery -A app.worker worker --loglevel=info
+    depends_on:
+      - db
+      - redis
+
+  beat:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://jeff:${POSTGRES_PASSWORD}@db:5432/jeff
+      REDIS_URL: redis://redis:6379/0
+    command: celery -A app.worker beat --loglevel=info --schedule=/tmp/celerybeat-schedule
+    depends_on:
+      - redis
+
+volumes:
+  jeff_db:
+  jeff_redis:

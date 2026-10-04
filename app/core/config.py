@@ -1,0 +1,28 @@
+"""Configuration de l'application, lue uniquement depuis les variables d'environnement (.env).
+
+Aucun secret n'est écrit dans le code : les valeurs par défaut ci-dessous ne servent qu'au
+développement local et aux tests.
+"""
+from functools import lru_cache
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+VERSION = "0.1.0"
+
+
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+    environnement: str = "developpement"
+    database_url: str = "postgresql+psycopg://jeff:jeff@localhost:5432/jeff"
+    redis_url: str = "redis://localhost:6379/0"
+
+    @property
+    def debug(self) -> bool:
+        # Le mode debug est toujours coupé en production.
+        return self.environnement != "production"
+
+
+@lru_cache
+def get_settings() -> Settings:
+    return Settings()

@@ -1,0 +1,20 @@
+# Secrets
+.env
+*.env
+!.env.example
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+
+# Fichiers envoyés par les utilisateurs et sauvegardes
+uploads/
+sauvegardes/
+*.dump
+*.sql.gz
+
+# Divers
+.DS_Store
+celerybeat-schedule*
