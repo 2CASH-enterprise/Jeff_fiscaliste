@@ -7,7 +7,7 @@ from functools import lru_cache
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-VERSION = "0.1.0"
+VERSION = "0.2.0"
 
 
 class Settings(BaseSettings):
@@ -16,6 +16,8 @@ class Settings(BaseSettings):
     environnement: str = "developpement"
     database_url: str = "postgresql+psycopg://jeff:jeff@localhost:5432/jeff"
     redis_url: str = "redis://localhost:6379/0"
+    # Page d'essai de la bulle web : coupée par défaut, à activer explicitement dans le .env.
+    essai_actif: bool = False
 
     @property
     def debug(self) -> bool:

@@ -38,7 +38,7 @@ services:
         condition: service_started
     # Accessible uniquement depuis le serveur lui-même tant qu'il n'y a pas de HTTPS.
     ports:
-      - "127.0.0.1:${JEFF_PORT:-8010}:8000"
+      - "127.0.0.1:${JEFF_PORT:-8020}:8000"
 
   worker:
     build: .

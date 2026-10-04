@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="fr" data-bs-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Jeff — essai de la bulle</title>
+  <script>
+    // Thème clair ou sombre selon le réglage de l'appareil.
+    if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      document.documentElement.setAttribute("data-bs-theme", "dark");
+    }
+  </script>
+  <link rel="stylesheet" href="{{ url_for('static', path='vendor/bootstrap/bootstrap.min.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', path='css/jeff.css') }}">
+</head>
+<body>
+  <div class="jeff-app">
+    <header class="jeff-entete">
+      <div class="jeff-avatar" aria-hidden="true">J</div>
+      <div>
+        <div class="jeff-nom">Jeff</div>
+        <div class="jeff-sous-titre">Votre assistant fiscal · page d'essai</div>
+      </div>
+    </header>
+
+    <main id="fil" class="jeff-fil" aria-live="polite">
+      <div class="jeff-bulle jeff-sortant" id="invitation">Écrivez « Bonjour » pour commencer.</div>
+    </main>
+
+    <div id="choix" class="jeff-choix"></div>
+
+    <form id="formulaire" class="jeff-saisie" autocomplete="off">
+      <label for="texte" class="visually-hidden">Votre message</label>
+      <input id="texte" name="texte" class="form-control" maxlength="2000"
+             placeholder="Écrivez votre message…" required>
+      <button type="submit" class="btn jeff-envoyer">Envoyer</button>
+    </form>
+  </div>
+  <script src="{{ url_for('static', path='js/essai.js') }}"></script>
+</body>
+</html>

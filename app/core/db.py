@@ -19,3 +19,16 @@ def get_engine() -> Engine:
 
 def get_session() -> Session:
     return sessionmaker(bind=get_engine(), expire_on_commit=False)()
+
+
+def session_requete():
+    """Session de base pour une requête web : validée si tout va bien, annulée sinon."""
+    session = get_session()
+    try:
+        yield session
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
+    finally:
+        session.close()

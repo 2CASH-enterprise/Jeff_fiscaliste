@@ -20,7 +20,7 @@ Le projet avance par lots numérotés (« Méthode de développement par lots »
 cp .env.example .env        # puis remplir les valeurs
 docker compose up -d --build
 docker compose exec api alembic upgrade head
-curl http://127.0.0.1:8010/sante
+curl http://127.0.0.1:8020/sante
 ```
 
 ## Tests
