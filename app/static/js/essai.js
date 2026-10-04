@@ -19,18 +19,21 @@
     (choix || []).forEach(function (c) {
       const bouton = document.createElement("button");
       bouton.type = "button";
-      bouton.textContent = c.valeur + ". " + c.libelle;
-      bouton.addEventListener("click", function () { envoyer(c.valeur); });
+      // Seuls les choix numérotés affichent leur numéro (comme dans un menu WhatsApp).
+      bouton.textContent = /^\d+$/.test(c.valeur) ? c.valeur + ". " + c.libelle : c.libelle;
+      bouton.addEventListener("click", function () { envoyer(c.valeur, c.libelle); });
       zoneChoix.appendChild(bouton);
     });
+    // Les boutons réduisent la hauteur du fil : on garde le dernier message visible.
+    fil.scrollTop = fil.scrollHeight;
   }
 
-  async function envoyer(texte) {
+  async function envoyer(texte, libelle) {
     texte = texte.trim();
     if (!texte) return;
     const invitation = document.getElementById("invitation");
     if (invitation) invitation.remove();
-    ajouterBulle(texte, "entrant");
+    ajouterBulle(libelle || texte, "entrant");
     afficherChoix([]);
     const attente = ajouterBulle("Jeff écrit…", "sortant", "jeff-attente");
     try {

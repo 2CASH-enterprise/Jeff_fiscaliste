@@ -58,7 +58,7 @@ body { background: var(--jeff-fond); }
   border-radius: 16px;
   line-height: 1.4;
   white-space: pre-wrap;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 .jeff-sortant {
   align-self: flex-start;

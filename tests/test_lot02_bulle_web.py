@@ -164,10 +164,11 @@ def test_echange_complet_dans_la_bulle(essai):
     assert reponse.status_code == 200
     assert reponse.json()["reponse"] == mf.ACCUEIL
     assert reponse.json()["choix"][0] == {"valeur": "1", "libelle": "Préparer ma déclaration"}
-    client.post("/essai/messages", json={"texte": "3"})
+    # Le choix 4 ne demande pas de profil (les choix 1 à 3 lancent l'onboarding depuis le lot 3).
+    client.post("/essai/messages", json={"texte": "4"})
     messages = client.get("/essai/historique").json()["messages"]
     assert [m["sens"] for m in messages] == [ENTRANT, SORTANT, ENTRANT, SORTANT]
-    assert messages[3]["texte"] == mf.BIENTOT.format(libelle="Voir mes échéances")
+    assert messages[3]["texte"] == mf.BIENTOT.format(libelle="Poser une question")
 
 
 def test_un_autre_visiteur_ne_voit_rien(essai):

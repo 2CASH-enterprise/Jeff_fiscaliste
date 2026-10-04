@@ -7,7 +7,7 @@ from functools import lru_cache
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-VERSION = "0.2.0"
+VERSION = "0.3.0"
 
 
 class Settings(BaseSettings):
@@ -18,6 +18,8 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379/0"
     # Page d'essai de la bulle web : coupée par défaut, à activer explicitement dans le .env.
     essai_actif: bool = False
+    # Pays de ce déploiement : une entreprise relève d'une seule juridiction.
+    juridiction: str = "CM"
 
     @property
     def debug(self) -> bool:

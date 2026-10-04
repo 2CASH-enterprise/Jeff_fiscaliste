@@ -1,42 +1,46 @@
 """Moteur conversationnel commun à tous les canaux (bulle web, WhatsApp plus tard).
 
-Il reçoit un texte, enregistre l'échange et renvoie une réponse. Pour l'instant, les réponses
-sont des messages fixes ; l'IA viendra plus tard sans changer cette interface.
+Il reçoit un texte, enregistre l'échange et renvoie une réponse. Les réponses sont des
+messages fixes ; les parcours (onboarding, puis déclarations) sont menés par le code.
 """
-import re
-import unicodedata
-from dataclasses import dataclass, field
-
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.conversation import messages_fixes as mf
-from app.conversation.models import ENTRANT, SORTANT, Conversation, Message
+from app.conversation import onboarding
+from app.conversation.models import (
+    ABANDONNE,
+    EN_COURS,
+    EN_PAUSE,
+    ENTRANT,
+    SORTANT,
+    Conversation,
+    Message,
+)
+from app.conversation.normalisation import normaliser
+from app.conversation.reponse import Reponse
 
 LONGUEUR_MAX = 2000
 
 SALUTATIONS = {"bonjour", "bonsoir", "salut", "hello", "coucou", "bjr", "slt", "menu"}
 
+# Choix du menu qui demandent de connaître l'entreprise.
+CHOIX_AVEC_PROFIL = {"1", "2", "3"}
 
-@dataclass
-class Reponse:
-    texte: str
-    choix: list[tuple[str, str]] = field(default_factory=list)
+__all__ = ["LONGUEUR_MAX", "MessageVide", "Reponse", "historique", "normaliser", "repondre", "traiter_message"]
 
 
 class MessageVide(ValueError):
     pass
 
 
-def normaliser(texte: str) -> str:
-    """Minuscules, sans accents ni ponctuation, espaces réduits."""
-    sans_accents = unicodedata.normalize("NFKD", texte).encode("ascii", "ignore").decode()
-    return re.sub(r"\s+", " ", re.sub(r"[^\w\s]", " ", sans_accents.lower())).strip()
+def trop_long(texte: str) -> bool:
+    return len(texte) > LONGUEUR_MAX
 
 
 def repondre(texte: str) -> Reponse:
-    """Décide de la réponse, sans effet de bord."""
-    if len(texte) > LONGUEUR_MAX:
+    """Réponse au niveau du menu, pour une entreprise déjà connue. Sans effet de bord."""
+    if trop_long(texte):
         return Reponse(mf.TROP_LONG)
     mots = normaliser(texte)
     premier_mot = mots.split()[0] if mots else ""
@@ -46,6 +50,35 @@ def repondre(texte: str) -> Reponse:
         if mots == valeur:
             return Reponse(mf.BIENTOT.format(libelle=libelle))
     return Reponse(mf.INCOMPRIS)
+
+
+def decider(session: Session, conversation: Conversation, texte: str) -> Reponse:
+    """Choisit la réponse en tenant compte du parcours en cours et du profil de l'entreprise."""
+    if trop_long(texte):
+        return Reponse(mf.TROP_LONG)
+    mots = normaliser(texte)
+    parcours = onboarding.parcours_actif(session, conversation)
+
+    if parcours is not None and parcours.statut == EN_COURS:
+        if mots == "menu":
+            parcours.statut = EN_PAUSE
+            return Reponse(mf.PAUSE, list(mf.MENU))
+        if mots == "annuler":
+            parcours.statut = ABANDONNE
+            return Reponse(mf.ANNULE, list(mf.MENU))
+        return onboarding.avancer(session, conversation, parcours, texte)
+
+    sans_profil = conversation.entreprise_id is None
+
+    if parcours is not None and parcours.statut == EN_PAUSE:
+        if mots == "reprendre" or (sans_profil and mots in CHOIX_AVEC_PROFIL):
+            parcours.statut = EN_COURS
+            return onboarding.question(parcours)
+
+    if sans_profil and mots in CHOIX_AVEC_PROFIL and parcours is None:
+        return onboarding.demarrer(session, conversation)
+
+    return repondre(texte)
 
 
 def trouver_ou_creer_conversation(session: Session, canal: str, identifiant: str) -> Conversation:
@@ -66,7 +99,7 @@ def traiter_message(session: Session, canal: str, identifiant: str, texte: str) 
     if texte is None or not texte.strip():
         raise MessageVide("Le message est vide.")
     conversation = trouver_ou_creer_conversation(session, canal, identifiant)
-    reponse = repondre(texte)
+    reponse = decider(session, conversation, texte)
     session.add(Message(conversation_id=conversation.id, sens=ENTRANT, texte=texte[:LONGUEUR_MAX]))
     session.add(Message(conversation_id=conversation.id, sens=SORTANT, texte=reponse.texte))
     session.flush()
