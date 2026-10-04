@@ -52,7 +52,7 @@ def test_salutation_affiche_le_menu(texte):
     reponse = repondre(texte)
     assert reponse.texte == mf.ACCUEIL
     assert reponse.choix == list(mf.MENU)
-    assert [v for v, _ in reponse.choix] == ["1", "2", "3", "4"]
+    assert [v for v, _ in reponse.choix] == ["1", "2", "3", "4", "5"]
 
 
 @pytest.mark.parametrize("valeur, libelle", mf.MENU)
@@ -62,7 +62,7 @@ def test_choix_du_menu_annonce_bientot(valeur, libelle):
     assert reponse.choix == []
 
 
-@pytest.mark.parametrize("texte", ["5", "0", "bonjourno", "quelle est la TVA ?", "12", "1 2", "..."])
+@pytest.mark.parametrize("texte", ["6", "0", "bonjourno", "quelle est la TVA ?", "12", "1 2", "..."])
 def test_message_non_compris(texte):
     assert repondre(texte).texte == mf.INCOMPRIS
 

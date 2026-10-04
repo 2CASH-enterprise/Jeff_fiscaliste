@@ -7,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.conversation import messages_fixes as mf
-from app.conversation import echeances, obligations, onboarding
+from app.conversation import echeances, obligations, onboarding, profil
 from app.conversation.models import (
     ABANDONNE,
     EN_COURS,
@@ -26,9 +26,11 @@ LONGUEUR_MAX = 2000
 SALUTATIONS = {"bonjour", "bonsoir", "salut", "hello", "coucou", "bjr", "slt", "menu"}
 
 # Choix du menu qui demandent de connaître l'entreprise.
-CHOIX_AVEC_PROFIL = {"1", "2", "3"}
+CHOIX_AVEC_PROFIL = {"1", "2", "3", "5"}
 CHOIX_OBLIGATIONS = "2"
 CHOIX_ECHEANCES = "3"
+CHOIX_PROFIL = "5"
+MODIFIER = {"modifier", "modifier mon profil"}
 
 __all__ = ["LONGUEUR_MAX", "MessageVide", "Reponse", "historique", "normaliser", "repondre", "traiter_message"]
 
@@ -68,13 +70,17 @@ def decider(session: Session, conversation: Conversation, texte: str) -> Reponse
             return Reponse(mf.PAUSE, list(mf.MENU))
         if mots == "annuler":
             parcours.statut = ABANDONNE
-            return Reponse(mf.ANNULE, list(mf.MENU))
+            annule = mf.MODIFICATION_ANNULEE if parcours.type == profil.TYPE else mf.ANNULE
+            return Reponse(annule, list(mf.MENU))
+        if parcours.type == profil.TYPE:
+            return profil.avancer(session, conversation, parcours, texte)
         return onboarding.avancer(session, conversation, parcours, texte)
 
     sans_profil = conversation.entreprise_id is None
 
     if parcours is not None and parcours.statut == EN_PAUSE:
-        if mots == "reprendre" or (sans_profil and mots in CHOIX_AVEC_PROFIL):
+        reprise_modification = parcours.type == profil.TYPE and mots in MODIFIER
+        if mots == "reprendre" or reprise_modification or (sans_profil and mots in CHOIX_AVEC_PROFIL):
             parcours.statut = EN_COURS
             return onboarding.question(parcours)
 
@@ -88,6 +94,12 @@ def decider(session: Session, conversation: Conversation, texte: str) -> Reponse
     if not sans_profil and mots == CHOIX_ECHEANCES:
         entreprise = session.get(Entreprise, conversation.entreprise_id)
         return echeances.voir_echeances(session, entreprise)
+
+    if not sans_profil and mots == CHOIX_PROFIL:
+        return profil.voir_profil(session.get(Entreprise, conversation.entreprise_id))
+
+    if not sans_profil and mots in MODIFIER and parcours is None:
+        return profil.demarrer(session, conversation, session.get(Entreprise, conversation.entreprise_id))
 
     return repondre(texte)
 

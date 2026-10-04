@@ -3,6 +3,7 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import BigInteger, Boolean, DateTime, ForeignKey, Integer, String, UniqueConstraint, func
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.db import Base
@@ -32,3 +33,19 @@ class Entreprise(Base):
     modifie_le: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
+
+
+class ModificationEntreprise(Base):
+    """Trace d'une modification du profil : un enregistrement par champ modifié (lot 6)."""
+
+    __tablename__ = "modifications_entreprise"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    entreprise_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("entreprises.id"), index=True)
+    # Conversation d'où vient la modification (bulle web, WhatsApp plus tard).
+    conversation_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("conversations.id"), default=None)
+    champ: Mapped[str] = mapped_column(String(50))
+    # Valeurs telles qu'en base (texte, nombre, oui/non ou vide), gardées avec leur type.
+    ancienne_valeur: Mapped[object | None] = mapped_column(JSONB(none_as_null=True), default=None)
+    nouvelle_valeur: Mapped[object | None] = mapped_column(JSONB(none_as_null=True), default=None)
+    cree_le: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

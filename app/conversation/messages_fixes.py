@@ -11,6 +11,7 @@ MENU = (
     ("2", "Voir mes obligations"),
     ("3", "Voir mes échéances"),
     ("4", "Poser une question"),
+    ("5", "Mon entreprise"),
 )
 
 BIENTOT = "« {libelle} » sera bientôt disponible. Tapez « menu » pour revenir aux choix."
@@ -123,4 +124,28 @@ ECHEANCES_AUCUNE = (
 TOUS = TOUS + (
     ECHEANCES_INTRO, ECHEANCES_LIGNE, ECHEANCES_WEEK_END, ECHEANCES_FERIE, ECHEANCES_SANS_DATE,
     ECHEANCES_PONCTUELLES, ECHEANCES_A_CONFIRMER, ECHEANCES_AUCUNE,
+)
+
+
+# --- Profil de l'entreprise (lot 6) -------------------------------------------------------
+
+PROFIL_INTRO = "Voici le profil de « {raison_sociale} » :"
+NON_MODIFIABLE = "non modifiable"
+PROFIL_NIU = "Le NIU ne peut pas être modifié ici. En cas d'erreur, contactez l'équipe Jeff."
+CHOIX_PROFIL = (("modifier", "Modifier mon profil"), ("menu", "Retour au menu"))
+MODIFICATION_QUELLE = "Quelle information souhaitez-vous modifier ?"
+MODIFICATION_RECAP_INTRO = "Voici votre profil avec vos modifications :"
+MODIFICATION_RECAP_QUESTION = "Enregistrer ces modifications ?"
+CHOIX_RECAP_MODIFICATION = (("oui", "Oui, enregistrer"), ("corriger", "Modifier autre chose"))
+MODIFICATION_ANNULEE = "La modification est annulée. Votre profil n'a pas changé."
+PROFIL_A_JOUR = (
+    "Votre profil est à jour. Choisissez « Voir mes obligations » pour vérifier "
+    "vos obligations après ces changements."
+)
+PROFIL_INCHANGE = "Vous n'avez rien modifié : votre profil reste inchangé."
+
+TOUS = TOUS + (
+    PROFIL_INTRO, NON_MODIFIABLE, PROFIL_NIU, MODIFICATION_QUELLE, MODIFICATION_RECAP_INTRO,
+    MODIFICATION_RECAP_QUESTION, MODIFICATION_ANNULEE, PROFIL_A_JOUR, PROFIL_INCHANGE,
+    *(libelle for _, libelle in CHOIX_PROFIL), *(libelle for _, libelle in CHOIX_RECAP_MODIFICATION),
 )

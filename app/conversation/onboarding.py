@@ -26,6 +26,7 @@ from app.entreprises.models import Entreprise
 from app.entreprises.niu import NiuInvalide, normaliser_niu
 
 TYPE = "onboarding"
+MODIFICATION = "modification"  # Parcours de modification du profil (lot 6), même mécanique.
 PROPOSITION = "proposition"
 RECAPITULATIF = "recapitulatif"
 CORRECTION = "correction"
@@ -208,9 +209,22 @@ def etapes_visibles(donnees: dict) -> list[Etape]:
     return [etape for etape in ETAPES if etape.condition(donnees)]
 
 
-def recapitulatif(donnees: dict) -> Reponse:
-    lignes = [f"• {e.libelle} : {afficher(e.cle, donnees.get(e.cle))}" for e in etapes_visibles(donnees)]
-    texte = "\n".join([mf.RECAP_INTRO, *lignes, "", mf.RECAP_QUESTION])
+def lignes_profil(donnees: dict, niu_verrouille: bool = False) -> list[str]:
+    lignes = []
+    for e in etapes_visibles(donnees):
+        ligne = f"• {e.libelle} : {afficher(e.cle, donnees.get(e.cle))}"
+        if niu_verrouille and e.cle == "niu":
+            ligne += f" ({mf.NON_MODIFIABLE})"
+        lignes.append(ligne)
+    return lignes
+
+
+def recapitulatif(donnees: dict, type_parcours: str = TYPE) -> Reponse:
+    if type_parcours == MODIFICATION:
+        lignes = lignes_profil(donnees, niu_verrouille=True)
+        texte = "\n".join([mf.MODIFICATION_RECAP_INTRO, *lignes, "", mf.MODIFICATION_RECAP_QUESTION])
+        return Reponse(texte, list(mf.CHOIX_RECAP_MODIFICATION))
+    texte = "\n".join([mf.RECAP_INTRO, *lignes_profil(donnees), "", mf.RECAP_QUESTION])
     return Reponse(texte, list(mf.CHOIX_RECAP))
 
 
@@ -219,16 +233,25 @@ def question(parcours: Parcours) -> Reponse:
     if parcours.etape == PROPOSITION:
         return Reponse(mf.PROPOSITION_ONBOARDING, list(mf.CHOIX_PROPOSITION))
     if parcours.etape == RECAPITULATIF:
-        return recapitulatif(parcours.donnees)
+        return recapitulatif(parcours.donnees, parcours.type)
     if parcours.etape == CORRECTION:
-        return menu_correction(parcours.donnees)
+        return menu_correction(parcours)
     etape = PAR_CLE[parcours.etape]
     return Reponse(etape.question, list(etape.choix))
 
 
-def menu_correction(donnees: dict) -> Reponse:
-    choix = [(str(numero), e.libelle) for numero, e in enumerate(etapes_visibles(donnees), start=1)]
-    return Reponse(mf.CORRECTION, choix)
+def corrigeables(parcours: Parcours) -> list[Etape]:
+    """Étapes proposées à la correction ; le NIU est verrouillé une fois le profil créé."""
+    visibles = etapes_visibles(parcours.donnees)
+    if parcours.type == MODIFICATION:
+        return [e for e in visibles if e.cle != "niu"]
+    return visibles
+
+
+def menu_correction(parcours: Parcours) -> Reponse:
+    choix = [(str(numero), e.libelle) for numero, e in enumerate(corrigeables(parcours), start=1)]
+    texte = mf.MODIFICATION_QUELLE if parcours.type == MODIFICATION else mf.CORRECTION
+    return Reponse(texte, choix)
 
 
 # --- Enchaînement -------------------------------------------------------------------------
@@ -275,12 +298,12 @@ def avancer(session: Session, conversation: Conversation, parcours: Parcours, te
         return Reponse(mf.ERR_CHOIX, list(mf.CHOIX_RECAP))
 
     if parcours.etape == CORRECTION:
-        visibles = etapes_visibles(parcours.donnees)
-        if mots.isdigit() and 1 <= int(mots) <= len(visibles):
+        proposees = corrigeables(parcours)
+        if mots.isdigit() and 1 <= int(mots) <= len(proposees):
             parcours.donnees = {**parcours.donnees, RETOUR_RECAP: True}
-            parcours.etape = visibles[int(mots) - 1].cle
+            parcours.etape = proposees[int(mots) - 1].cle
             return question(parcours)
-        return Reponse(mf.ERR_CHOIX, menu_correction(parcours.donnees).choix)
+        return Reponse(mf.ERR_CHOIX, menu_correction(parcours).choix)
 
     etape = PAR_CLE[parcours.etape]
     try:
@@ -303,18 +326,10 @@ def finaliser(session: Session, conversation: Conversation, parcours: Parcours) 
         parcours.donnees = {**donnees, RETOUR_RECAP: True}
         parcours.etape = "niu"
         return Reponse(mf.NIU_DEJA_CONNU)
-    tva = donnees["assujetti_tva_declare"]
     entreprise = Entreprise(
         juridiction_code=get_settings().juridiction,
         niu=donnees["niu"],
-        raison_sociale=donnees["raison_sociale"],
-        forme_juridique=donnees["forme_juridique"],
-        secteur=donnees["secteur"],
-        chiffre_affaires_annuel=donnees["chiffre_affaires_annuel"],
-        centre_impots=donnees["centre_impots"],
-        regime_declare=donnees["regime_declare"],
-        assujetti_tva_declare=None if tva == INCONNU else tva == "oui",
-        nombre_salaries=donnees["nombre_salaries"],
+        **colonnes(donnees),
         numero_employeur_cnps=donnees.get("numero_employeur_cnps"),
     )
     session.add(entreprise)
@@ -322,6 +337,21 @@ def finaliser(session: Session, conversation: Conversation, parcours: Parcours) 
     conversation.entreprise_id = entreprise.id
     parcours.statut = TERMINE
     return Reponse(mf.BIENVENUE.format(raison_sociale=entreprise.raison_sociale), list(mf.MENU))
+
+
+# Champs du profil modifiables après la création (le NIU ne l'est pas).
+CHAMPS_MODIFIABLES = (
+    "raison_sociale", "forme_juridique", "secteur", "chiffre_affaires_annuel", "centre_impots",
+    "regime_declare", "assujetti_tva_declare", "nombre_salaries",
+)
+
+
+def colonnes(donnees: dict) -> dict:
+    """Réponses du questionnaire → valeurs des colonnes de l'entreprise (hors NIU et CNPS)."""
+    valeurs = {cle: donnees[cle] for cle in CHAMPS_MODIFIABLES}
+    tva = donnees["assujetti_tva_declare"]
+    valeurs["assujetti_tva_declare"] = None if tva == INCONNU else tva == "oui"
+    return valeurs
 
 
 def parcours_actif(session: Session, conversation: Conversation) -> Parcours | None:
