@@ -1,0 +1,16 @@
+{% extends "espace/seul.html" %}
+{% from "espace/icones.html" import icone %}
+{% block titre %}Connexion{% endblock %}
+{% block contenu %}
+<h1 class="esp-titre-seul">{{ tx.TITRE }}</h1>
+<p class="esp-intro">{{ tx.CONNEXION_INTRO }}</p>
+{% if info %}<div class="esp-message esp-message-info" role="status">{{ info }}</div>{% endif %}
+{% if erreur %}<div class="esp-message esp-message-erreur" role="alert">{{ erreur }}</div>{% endif %}
+<form method="post" action="{{ url_for('espace_connexion') }}" class="esp-formulaire" novalidate>
+  <label for="email" class="form-label">{{ tx.EMAIL }}</label>
+  <input id="email" name="email" type="email" class="form-control form-control-lg" value="{{ email }}"
+         autocomplete="email" inputmode="email" maxlength="254" required autofocus>
+  <button type="submit" class="btn btn-lg esp-bouton">{{ tx.CONNEXION_BOUTON }}</button>
+</form>
+<p class="esp-pied">{{ tx.CONNEXION_PIED }}<br>{{ tx.SESSION_DUREE }}</p>
+{% endblock %}

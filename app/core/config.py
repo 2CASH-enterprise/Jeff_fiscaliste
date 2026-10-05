@@ -7,7 +7,7 @@ from functools import lru_cache
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-VERSION = "0.11.0"
+VERSION = "0.12.0"
 
 
 class Settings(BaseSettings):
@@ -18,6 +18,8 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379/0"
     # Page d'essai de la bulle web : coupée par défaut, à activer explicitement dans le .env.
     essai_actif: bool = False
+    # Coffre fiscal du client (lot 12) : coupé par défaut, à activer explicitement dans le .env.
+    espace_actif: bool = False
     # Pays de ce déploiement : une entreprise relève d'une seule juridiction.
     juridiction: str = "CM"
     # Envoi des emails par SMTP (lot 8, fournisseur Brevo). Les identifiants ne sont que dans le .env.

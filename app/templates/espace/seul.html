@@ -1,0 +1,8 @@
+{# Pages sans navigation : connexion, code, choix d'entreprise. #}
+{% extends "espace/page.html" %}
+{% block corps %}
+<main class="esp-seul">
+  <img class="esp-logo-rond" src="{{ url_for('static', path='img/logo-jeff.webp') }}" alt="Jeff AI" width="112" height="112">
+  {% block contenu %}{% endblock %}
+</main>
+{% endblock %}

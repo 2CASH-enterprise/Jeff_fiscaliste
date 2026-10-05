@@ -1,0 +1,17 @@
+{% extends "espace/seul.html" %}
+{% from "espace/icones.html" import icone %}
+{% block titre %}Entreprise{% endblock %}
+{% block contenu %}
+<h1 class="esp-titre-seul">{{ tx.CHOIX_TITRE }}</h1>
+<p class="esp-intro">{{ tx.CHOIX_INTRO }}</p>
+<form method="post" action="{{ url_for('espace_choix') }}" class="esp-carte esp-liste">
+  {% for e in entreprises %}
+  <button type="submit" name="entreprise" value="{{ e.id }}" class="esp-ligne esp-ligne-bouton{% if e.id == courante %} esp-courante{% endif %}">
+    <span class="esp-pastille">{{ e.raison_sociale[:1] | upper }}</span>
+    <span class="esp-ligne-texte"><span class="esp-ligne-titre">{{ e.raison_sociale }}</span><span class="esp-ligne-sous">NIU {{ e.niu }}</span></span>
+    {{ icone("suivant", 18) }}
+  </button>
+  {% endfor %}
+</form>
+<p class="esp-pied">{{ tx.CHOIX_PIED }}</p>
+{% endblock %}

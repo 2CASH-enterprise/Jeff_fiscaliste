@@ -1,0 +1,17 @@
+{% extends "espace/seul.html" %}
+{% from "espace/icones.html" import icone %}
+{% block titre %}Code{% endblock %}
+{% block contenu %}
+<h1 class="esp-titre-seul">{{ tx.CODE_TITRE }}</h1>
+<p class="esp-intro">{{ tx.CODE_ENVOYE.format(email=email) }}</p>
+{% if info %}<div class="esp-message esp-message-info" role="status">{{ info }}</div>{% endif %}
+{% if erreur %}<div class="esp-message esp-message-erreur" role="alert">{{ erreur }}</div>{% endif %}
+<form method="post" action="{{ url_for('espace_code') }}" class="esp-formulaire" novalidate>
+  <label for="code" class="form-label">{{ tx.CODE_TITRE }}</label>
+  <input id="code" name="code" class="form-control form-control-lg esp-code" inputmode="numeric"
+         autocomplete="one-time-code" maxlength="12" placeholder="000000" autofocus>
+  <button type="submit" name="action" value="valider" class="btn btn-lg esp-bouton">{{ tx.CODE_BOUTON }}</button>
+  <button type="submit" name="action" value="renvoyer" class="btn esp-bouton-secondaire">{{ tx.CODE_RENVOYER }}</button>
+</form>
+<p class="esp-pied"><a href="{{ url_for('espace_connexion') }}">{{ tx.CODE_AUTRE_ADRESSE }}</a></p>
+{% endblock %}

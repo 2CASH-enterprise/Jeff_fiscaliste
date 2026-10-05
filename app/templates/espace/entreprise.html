@@ -1,0 +1,45 @@
+{% extends "espace/base.html" %}
+{% from "espace/icones.html" import icone %}
+{% block titre %}Mon entreprise{% endblock %}
+{% block contenu %}
+<h1 class="esp-titre">Mon entreprise</h1>
+<div class="esp-grille">
+  <div>
+    <h2 class="esp-section esp-section-haut">{{ tx.PROFIL }}</h2>
+    <section class="esp-carte">
+      <dl class="esp-fiche">
+        {% for libelle, valeur, verrouillee in fiche.lignes %}
+        <div class="esp-fiche-ligne">
+          <dt>{{ libelle }}</dt>
+          <dd>{{ valeur }}{% if verrouillee %} <span class="esp-verrou" title="{{ tx.NIU_VERROUILLE }}">{{ icone("verrou", 15) }}<span class="visually-hidden">{{ tx.NIU_VERROUILLE }}</span></span>{% endif %}</dd>
+        </div>
+        {% endfor %}
+      </dl>
+    </section>
+    <p class="esp-note esp-avertissement">{{ icone("info", 16) }}<span>{{ tx.MODIFIER_AIDE }}</span></p>
+  </div>
+  <div>
+    <h2 class="esp-section esp-section-haut">{{ tx.CONTACT }}</h2>
+    <section class="esp-carte">
+      <dl class="esp-fiche">
+        <div class="esp-fiche-ligne"><dt>{{ tx.EMAIL }}</dt><dd>{{ fiche.email }} <span class="esp-etiquette esp-etiquette-vert">{{ tx.EMAIL_CONFIRMEE }}</span></dd></div>
+        {% for numero, actifs in fiche.whatsapp %}
+        <div class="esp-fiche-ligne"><dt>{{ tx.WHATSAPP }}</dt><dd>{{ numero }} <span class="esp-etiquette esp-etiquette-vert">{{ tx.WHATSAPP_RELIE }}</span></dd></div>
+        {% else %}
+        <div class="esp-fiche-ligne"><dt>{{ tx.WHATSAPP }}</dt><dd>{{ tx.WHATSAPP_AUCUN }}</dd></div>
+        {% endfor %}
+      </dl>
+    </section>
+    <h2 class="esp-section">{{ tx.RAPPELS }}</h2>
+    <section class="esp-carte">
+      <dl class="esp-fiche">
+        {% for numero, actifs in fiche.whatsapp %}
+        <div class="esp-fiche-ligne"><dt>{{ tx.RAPPELS_WHATSAPP }}{% if fiche.whatsapp | length > 1 %} ({{ numero }}){% endif %}</dt>
+          <dd><span class="esp-etiquette {{ 'esp-etiquette-vert' if actifs else 'esp-etiquette-gris' }}">{{ tx.ACTIFS if actifs else tx.ARRETES }}</span></dd></div>
+        {% endfor %}
+        <div class="esp-fiche-ligne"><dt>{{ tx.RAPPELS_EMAIL }}</dt><dd><span class="esp-etiquette esp-etiquette-vert">{{ tx.ACTIFS }}</span></dd></div>
+      </dl>
+    </section>
+  </div>
+</div>
+{% endblock %}

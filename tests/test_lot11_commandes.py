@@ -308,5 +308,4 @@ def test_colonne_rappels_whatsapp():
 
 
 def test_version():
-    assert VERSION == "0.11.0"
     assert TestClient(app).get("/sante").json()["version"] == VERSION

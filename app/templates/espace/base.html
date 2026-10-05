@@ -1,0 +1,42 @@
+{# Pages connectées : menu à gauche sur ordinateur, barre en bas sur téléphone. #}
+{% extends "espace/page.html" %}
+{% from "espace/icones.html" import icone %}
+{% block corps %}
+<div class="esp-cadre">
+  <aside class="esp-menu" aria-label="Menu">
+    {% include "espace/logo.html" %}
+    <nav class="esp-menu-liens">
+      {% for cle, libelle in tx.ONGLETS %}
+      <a href="{{ url_for('espace_' ~ cle) }}" class="esp-menu-lien{% if cle == onglet %} actif{% endif %}"{% if cle == onglet %} aria-current="page"{% endif %}>{{ icone(cle, 20) }}{{ libelle }}</a>
+      {% endfor %}
+    </nav>
+    <form method="post" action="{{ url_for('espace_deconnexion') }}">
+      <button type="submit" class="esp-menu-lien esp-sortie">{{ icone("sortie", 20) }}{{ tx.DECONNEXION }}</button>
+    </form>
+  </aside>
+  <div class="esp-principal">
+    <header class="esp-entete">
+      <img class="esp-logo esp-logo-mobile" src="{{ url_for('static', path='img/logo-jeff-marque.svg') }}" alt="Jeff" width="32" height="32">
+      <div class="esp-entreprise">
+        <div class="esp-entreprise-libelle">Entreprise</div>
+        {% if plusieurs %}
+        <a href="{{ url_for('espace_choix') }}" class="esp-entreprise-nom" title="{{ tx.CHANGER_ENTREPRISE }}">{{ entreprise.raison_sociale }}{{ icone("bas", 16) }}</a>
+        {% else %}
+        <div class="esp-entreprise-nom">{{ entreprise.raison_sociale }}</div>
+        {% endif %}
+      </div>
+      <form method="post" action="{{ url_for('espace_deconnexion') }}" class="esp-sortie-mobile">
+        <button type="submit" class="btn esp-bouton-icone" aria-label="{{ tx.DECONNEXION }}" title="{{ tx.DECONNEXION }}">{{ icone("sortie", 20) }}</button>
+      </form>
+    </header>
+    <main class="esp-contenu">
+      {% block contenu %}{% endblock %}
+    </main>
+  </div>
+  <nav class="esp-barre" aria-label="Onglets">
+    {% for cle, libelle in tx.ONGLETS %}
+    <a href="{{ url_for('espace_' ~ cle) }}" class="{% if cle == onglet %}actif{% endif %}"{% if cle == onglet %} aria-current="page"{% endif %}>{{ icone(cle, 22) }}<span>{{ tx.ONGLET_COURT.get(cle, libelle) }}</span></a>
+    {% endfor %}
+  </nav>
+</div>
+{% endblock %}

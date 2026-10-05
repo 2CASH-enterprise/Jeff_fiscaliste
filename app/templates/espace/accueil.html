@@ -1,0 +1,71 @@
+{% extends "espace/base.html" %}
+{% from "espace/icones.html" import icone %}
+{% block titre %}Accueil{% endblock %}
+{% block contenu %}
+<h1 class="esp-titre">{{ tx.BONJOUR }}</h1>
+<div class="esp-grille">
+  <div>
+    {% set p = tableau.prochaine %}
+    {% if p %}
+    <section class="esp-carte esp-vedette" aria-labelledby="prochaine">
+      <div class="esp-vedette-surtitre" id="prochaine">{{ tx.PROCHAINE_ECHEANCE }}</div>
+      <div class="esp-vedette-titre">{{ p.titre }}</div>
+      <div class="esp-vedette-texte">{{ tx.PERIODE.format(periode=p.periode) }}</div>
+      <div class="esp-vedette-texte">{{ tx.A_FAIRE_AVANT.format(date=p.date_texte) }}</div>
+      <div class="esp-compte">
+        {% if p.jours == 0 %}<strong>{{ tx.AUJOURD_HUI }}</strong>
+        {% elif p.jours == 1 %}<strong>{{ tx.DEMAIN }}</strong>
+        {% else %}<strong>{{ p.jours }}</strong><span>{{ tx.JOURS_RESTANTS }}</span>{% endif %}
+      </div>
+      {% if p.alerte %}<div class="esp-vedette-alerte">{{ icone("alerte", 18) }}<span>{{ p.alerte }}</span></div>{% endif %}
+    </section>
+    {% else %}
+    <section class="esp-carte"><p class="mb-0">{{ tx.AUCUNE_ECHEANCE }}</p></section>
+    {% endif %}
+
+    {% if tableau.a_confirmer %}
+    <h2 class="esp-section">{{ tx.A_CONFIRMER }}</h2>
+    <section class="esp-carte">
+      <p class="esp-note">{{ tx.A_CONFIRMER_INTRO }}</p>
+      {% for titre in tableau.a_confirmer %}
+      <div class="esp-ligne"><span class="esp-puce esp-puce-orange">{{ icone("alerte", 18) }}</span><span class="esp-ligne-texte"><span class="esp-ligne-titre">{{ titre }}</span></span></div>
+      {% endfor %}
+      <p class="esp-note mt-2 mb-0">{{ tx.A_CONFIRMER_AIDE }}</p>
+    </section>
+    {% endif %}
+  </div>
+
+  <div>
+    <h2 class="esp-section esp-section-haut">{{ tx.EN_CHIFFRES }}</h2>
+    <div class="esp-chiffres">
+      <div class="esp-carte esp-chiffre"><strong>{{ tableau.nombre_obligations }}</strong><span>{{ tx.OBLIGATIONS_SUIVIES }}</span></div>
+      <div class="esp-carte esp-chiffre"><strong>{{ tableau.a_confirmer | length }}</strong><span>{{ tx.OBLIGATIONS_A_CONFIRMER }}</span></div>
+    </div>
+
+    {% if tableau.a_venir %}
+    <h2 class="esp-section">{{ tx.A_VENIR }}</h2>
+    <section class="esp-carte">
+      {% for e in tableau.a_venir %}
+      <div class="esp-ligne">
+        <span class="esp-date"><strong>{{ e.date_limite.day }}</strong><span>{{ e.mois_court }}</span></span>
+        <span class="esp-ligne-texte"><span class="esp-ligne-titre">{{ e.titre }}</span><span class="esp-ligne-sous">{{ e.periode }} · {{ e.date_texte }}</span></span>
+      </div>
+      {% endfor %}
+    </section>
+    {% endif %}
+
+    {% if tableau.sans_date %}
+    <h2 class="esp-section">{{ tx.SANS_DATE }}</h2>
+    <section class="esp-carte">
+      {% for titre in tableau.sans_date %}
+      <div class="esp-ligne"><span class="esp-ligne-texte"><span class="esp-ligne-titre">{{ titre }}</span></span></div>
+      {% endfor %}
+    </section>
+    {% endif %}
+
+    {% if tableau.a_valider %}
+    <p class="esp-note esp-avertissement">{{ icone("info", 16) }}<span>{{ tx.AVERTISSEMENT_VALIDATION }}</span></p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

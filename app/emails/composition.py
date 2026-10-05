@@ -77,3 +77,13 @@ def email_liaison(session: Session, entreprises: list, code: str) -> Email:
     texte = mf.EMAIL_LIAISON_TEXTE.format(entreprises=noms, code=code) + "\n\n" + mf.EMAIL_SIGNATURE
     premiere = entreprises[0]
     return deposer(session, CODE, premiere.email, mf.EMAIL_LIAISON_OBJET, texte, premiere.id)
+
+
+def email_connexion(session: Session, entreprises: list, code: str) -> Email:
+    """Code d'ouverture du coffre fiscal (lot 12) ; effacé de la boîte d'envoi une fois parti, comme les autres codes."""
+    from app.espace import textes
+
+    noms = ", ".join("« " + e.raison_sociale + " »" for e in entreprises)
+    texte = textes.EMAIL_CONNEXION_TEXTE.format(entreprises=noms, code=code) + "\n\n" + mf.EMAIL_SIGNATURE
+    premiere = entreprises[0]
+    return deposer(session, CODE, premiere.email, textes.EMAIL_CONNEXION_OBJET, texte, premiere.id)

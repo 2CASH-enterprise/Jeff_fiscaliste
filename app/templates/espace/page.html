@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="fr" data-bs-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex">
+  <title>{% block titre %}Jeff{% endblock %} · Jeff</title>
+  <script>
+    // Thème clair ou sombre selon le réglage de l'appareil.
+    if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      document.documentElement.setAttribute("data-bs-theme", "dark");
+    }
+  </script>
+  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', path='img/logo-jeff-marque.svg') }}">
+  <link rel="stylesheet" href="{{ url_for('static', path='vendor/bootstrap/bootstrap.min.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', path='css/espace.css') }}">
+</head>
+<body>
+{% block corps %}{% endblock %}
+</body>
+</html>
