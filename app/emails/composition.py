@@ -69,3 +69,8 @@ def email_rappel(session: Session, entreprise, rappel, regle, ce_jour) -> Email:
     ])
     objet = mf.EMAIL_RAPPEL_OBJET.format(titre=regle.titre, date=formater_date(rappel.date_limite))
     return deposer(session, RAPPEL, entreprise.email, objet, texte, entreprise.id, rappel.id)
+
+
+def email_liaison(session: Session, entreprise, code: str) -> Email:
+    texte = mf.EMAIL_LIAISON_TEXTE.format(raison_sociale=entreprise.raison_sociale, code=code) + "\n\n" + mf.EMAIL_SIGNATURE
+    return deposer(session, CODE, entreprise.email, mf.EMAIL_LIAISON_OBJET, texte, entreprise.id)

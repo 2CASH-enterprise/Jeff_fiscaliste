@@ -6,5 +6,6 @@ from app.entreprises.models import Entreprise, ModificationEntreprise
 from app.rappels.models import Rappel
 from app.referentiel.models import Juridiction
 from app.regles.models import Regle
+from app.whatsapp.models import WhatsappEnvoi, WhatsappRecu
 
-__all__ = ["Base", "Conversation", "Email", "Entreprise", "Juridiction", "Message", "ModificationEntreprise", "Parcours", "Rappel", "Regle"]
+__all__ = ["Base", "Conversation", "Email", "Entreprise", "Juridiction", "Message", "ModificationEntreprise", "Parcours", "Rappel", "Regle", "WhatsappEnvoi", "WhatsappRecu"]

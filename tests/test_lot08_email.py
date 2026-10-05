@@ -754,7 +754,7 @@ def test_onboarding_avec_email_dans_la_bulle(monkeypatch):
 
 
 def test_version():
-    assert VERSION == "0.8.0"
+    assert TestClient(app).get("/sante").json()["version"] == VERSION
 
 
 # --- Limites décidées et cas de concurrence ------------------------------------------------------

@@ -30,7 +30,7 @@ PROPOSITION_ONBOARDING = (
     "Pour cela, j'ai d'abord besoin de connaître votre entreprise : "
     "une dizaine de questions, environ 3 minutes. On commence ?"
 )
-CHOIX_PROPOSITION = (("oui", "Oui, commençons"), ("plus tard", "Plus tard"))
+CHOIX_PROPOSITION = (("oui", "Oui, commençons"), ("plus tard", "Plus tard"), ("deja", "J'ai déjà un profil"))
 PLUS_TARD = "Très bien. Vous pourrez commencer quand vous le souhaitez depuis le menu."
 PAUSE = "Le questionnaire est en pause. Tapez « reprendre » pour continuer, ou choisissez une option."
 ANNULE = "Le questionnaire est annulé. Vos réponses n'ont pas été enregistrées."
@@ -212,4 +212,39 @@ TOUS = TOUS + (
     EMAIL_DESABONNEMENT, CODE_ATTENDU,
     EMAIL_CODE_OBJET, EMAIL_CODE_TEXTE, EMAIL_RAPPEL_OBJET, EMAIL_RAPPEL_INTRO, EMAIL_TEST_OBJET, EMAIL_TEST_TEXTE,
     *(libelle for _, libelle in CHOIX_EMAIL), *(libelle for _, libelle in CHOIX_CODE), CHOIX_CONFIRMER[1],
+)
+
+
+# --- Liaison d'une conversation à un profil existant (lot 9) ----------------------------------
+
+LIAISON_EMAIL = (
+    "Quelle est l'adresse email confirmée de votre profil Jeff ? Je vous y enverrai un code "
+    "pour relier cette conversation à votre entreprise."
+)
+LIAISON_CODE_ENVOYE = (
+    "Si cette adresse correspond à un profil Jeff confirmé, vous allez recevoir un code à 6 chiffres. "
+    "Recopiez-le ici (valable 15 minutes), ou tapez « annuler »."
+)
+LIAISON_CODE_ATTENDU = "Recopiez le code à 6 chiffres reçu par email, tapez « renvoyer » pour en recevoir un nouveau, ou « annuler »."
+LIAISON_OK = "C'est fait : cette conversation est reliée au profil de « {raison_sociale} »."
+LIAISON_ANNULEE = "La liaison est annulée. Tapez « menu » pour voir les choix, ou « 1 » pour créer un profil."
+LIAISON_TROP_D_ESSAIS = "Trop d'essais : la liaison est annulée. Vous pourrez réessayer plus tard depuis le menu."
+EMAIL_LIAISON_OBJET = "Votre code Jeff pour relier une conversation"
+EMAIL_LIAISON_TEXTE = (
+    "Bonjour,\n\nUne demande a été faite pour relier une nouvelle conversation (WhatsApp ou web) "
+    "à votre profil Jeff « {raison_sociale} ».\n\nVotre code : {code}\n\n"
+    "Il est valable 15 minutes. Si vous n'êtes pas à l'origine de cette demande, ignorez cet email : "
+    "rien ne sera relié sans ce code."
+)
+
+# --- WhatsApp (lot 9) ---------------------------------------------------------------------------
+
+WA_TYPE_NON_PRIS = "Je ne lis que les messages écrits pour l'instant. Écrivez votre demande, ou tapez « menu »."
+WA_BOUTON_LISTE = "Voir les choix"
+WA_VOTRE_CHOIX = "Votre choix :"
+
+TOUS = TOUS + (
+    LIAISON_EMAIL, LIAISON_CODE_ENVOYE, LIAISON_CODE_ATTENDU, LIAISON_OK, LIAISON_ANNULEE, LIAISON_TROP_D_ESSAIS,
+    EMAIL_LIAISON_OBJET, EMAIL_LIAISON_TEXTE, WA_TYPE_NON_PRIS, WA_BOUTON_LISTE, WA_VOTRE_CHOIX,
+    CHOIX_PROPOSITION[2][1],
 )

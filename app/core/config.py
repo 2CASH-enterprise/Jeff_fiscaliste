@@ -7,7 +7,7 @@ from functools import lru_cache
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-VERSION = "0.8.0"
+VERSION = "0.9.0"
 
 
 class Settings(BaseSettings):
@@ -27,6 +27,18 @@ class Settings(BaseSettings):
     smtp_mot_de_passe: str = ""
     email_expediteur: str = ""
     email_nom_expediteur: str = "Jeff"
+
+    # WhatsApp Business, API Cloud de Meta (lot 9). Jeton, secret et jeton de vérification : .env seulement.
+    whatsapp_jeton: str = ""
+    whatsapp_secret_app: str = ""
+    whatsapp_jeton_verification: str = ""
+    whatsapp_id_numero: str = ""
+    whatsapp_version_api: str = "v23.0"
+
+    @property
+    def whatsapp_configure(self) -> bool:
+        valeurs = (self.whatsapp_jeton, self.whatsapp_secret_app, self.whatsapp_jeton_verification, self.whatsapp_id_numero)
+        return all(v and v != "A_REMPLACER" for v in valeurs)
 
     @property
     def email_configure(self) -> bool:

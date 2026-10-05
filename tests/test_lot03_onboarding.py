@@ -480,6 +480,7 @@ def test_onboarding_dans_la_bulle(monkeypatch):
         assert reponse["choix"] == [
             {"valeur": "oui", "libelle": "Oui, commençons"},
             {"valeur": "plus tard", "libelle": "Plus tard"},
+            {"valeur": "deja", "libelle": "J'ai déjà un profil"},  # lot 9
         ]
         assert client.post("/essai/messages", json={"texte": "oui"}).json()["reponse"] == mf.Q_RAISON_SOCIALE
     finally:

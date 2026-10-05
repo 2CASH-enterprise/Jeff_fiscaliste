@@ -3,11 +3,13 @@
 Il reçoit un texte, enregistre l'échange et renvoie une réponse. Les réponses sont des
 messages fixes ; les parcours (onboarding, puis déclarations) sont menés par le code.
 """
+from datetime import datetime, timedelta, timezone
+
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.conversation import messages_fixes as mf
-from app.conversation import confirmation, echeances, obligations, onboarding, profil
+from app.conversation import confirmation, echeances, liaison, obligations, onboarding, profil
 from app.conversation.models import (
     ABANDONNE,
     EN_COURS,
@@ -33,13 +35,19 @@ CHOIX_ECHEANCES = "3"
 CHOIX_PROFIL = "5"
 MODIFIER = {"modifier", "modifier mon profil"}
 CONFIRMER = {"confirmer", "confirmer mon email"}
-ANNULATIONS = {profil.TYPE: mf.MODIFICATION_ANNULEE, confirmation.TYPE: mf.CONFIRMATION_ANNULEE}
+ANNULATIONS = {
+    profil.TYPE: mf.MODIFICATION_ANNULEE,
+    confirmation.TYPE: mf.CONFIRMATION_ANNULEE,
+    liaison.TYPE: mf.LIAISON_ANNULEE,
+}
 
 
 def question(parcours) -> Reponse:
     """Question en attente d'un parcours, pour le reprendre."""
     if parcours.type == confirmation.TYPE:
         return confirmation.question(parcours)
+    if parcours.type == liaison.TYPE:
+        return liaison.question(parcours)
     return onboarding.question(parcours)
 
 __all__ = ["LONGUEUR_MAX", "MessageVide", "Reponse", "historique", "normaliser", "repondre", "traiter_message"]
@@ -86,6 +94,8 @@ def decider(session: Session, conversation: Conversation, texte: str) -> Reponse
             return profil.avancer(session, conversation, parcours, texte)
         if parcours.type == confirmation.TYPE:
             return confirmation.avancer(session, conversation, parcours, texte)
+        if parcours.type == liaison.TYPE:
+            return liaison.avancer(session, conversation, parcours, texte)
         return onboarding.avancer(session, conversation, parcours, texte)
 
     sans_profil = conversation.entreprise_id is None
@@ -143,6 +153,7 @@ def traiter_message(session: Session, canal: str, identifiant: str, texte: str) 
     if texte is None or not texte.strip():
         raise MessageVide("Le message est vide.")
     conversation = trouver_ou_creer_conversation(session, canal, identifiant)
+    conversation.dernier_message_client_le = datetime.now(timezone.utc)
     rappels = rappels_a_remettre(session, conversation)
     reponse = decider(session, conversation, texte)
     reponse.rappels = rappels
@@ -164,3 +175,13 @@ def historique(session: Session, canal: str, identifiant: str) -> list[Message]:
             .order_by(Message.id)
         )
     )
+
+
+FENETRE = timedelta(hours=24)
+
+
+def fenetre_ouverte(conversation: Conversation, maintenant: datetime | None = None) -> bool:
+    """Vrai si le client a écrit il y a moins de 24 h (WhatsApp autorise alors les messages libres)."""
+    if conversation.dernier_message_client_le is None:
+        return False
+    return (maintenant or datetime.now(timezone.utc)) - conversation.dernier_message_client_le < FENETRE

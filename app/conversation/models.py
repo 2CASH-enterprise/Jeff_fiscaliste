@@ -34,6 +34,8 @@ class Conversation(Base):
     entreprise_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("entreprises.id"), default=None, index=True
     )
+    # Dernier message reçu du client (lot 9) : ouvre la fenêtre de 24 h de WhatsApp.
+    dernier_message_client_le: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
     cree_le: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 

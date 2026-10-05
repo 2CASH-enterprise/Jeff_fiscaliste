@@ -12,6 +12,8 @@ celery_app.conf.beat_schedule = {
     "preparer-rappels": {"task": "jeff.preparer_rappels", "schedule": crontab(hour=7, minute=30)},
     # Lot 8 : la boîte d'envoi est vidée chaque minute (codes de confirmation, rappels).
     "envoyer-emails": {"task": "jeff.envoyer_emails", "schedule": crontab()},
+    # Lot 9 : reprise des réponses WhatsApp restées en attente.
+    "envoyer-whatsapp": {"task": "jeff.envoyer_whatsapp", "schedule": crontab()},
 }
 
 
@@ -43,6 +45,23 @@ def tache_envoyer_emails() -> dict:
     from app import models as _modeles  # noqa: F401 (toutes les tables connues)
     from app.core.db import get_session
     from app.emails.envoi import envoyer_en_attente
+
+    session = get_session()
+    try:
+        bilan = envoyer_en_attente(session)
+        return {"envoyes": bilan.envoyes, "echecs": bilan.echecs, "desactive": bilan.desactive}
+    except Exception:
+        session.rollback()
+        raise
+    finally:
+        session.close()
+
+
+@celery_app.task(name="jeff.envoyer_whatsapp")
+def tache_envoyer_whatsapp() -> dict:
+    from app import models as _modeles  # noqa: F401 (toutes les tables connues)
+    from app.core.db import get_session
+    from app.whatsapp.envoi import envoyer_en_attente
 
     session = get_session()
     try:

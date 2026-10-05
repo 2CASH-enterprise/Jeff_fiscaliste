@@ -11,7 +11,7 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.conversation import confirmation
+from app.conversation import confirmation, liaison
 from app.conversation import messages_fixes as mf
 from app.conversation.models import ABANDONNE, EN_COURS, EN_PAUSE, TERMINE, Conversation, Parcours
 from app.conversation.montants import (
@@ -304,6 +304,10 @@ def avancer(session: Session, conversation: Conversation, parcours: Parcours, te
         if mots in PLUS_TARD:
             parcours.statut = ABANDONNE
             return Reponse(mf.PLUS_TARD, list(mf.MENU))
+        if mots in liaison.DEJA:
+            parcours.statut = ABANDONNE
+            session.flush()  # Un seul parcours actif : l'onboarding est clos avant d'ouvrir la liaison.
+            return liaison.demarrer(session, conversation)
         return Reponse(mf.ERR_CHOIX, list(mf.CHOIX_PROPOSITION))
 
     if parcours.etape == RECAPITULATIF:
