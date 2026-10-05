@@ -91,3 +91,23 @@ def contenus(reponse: Reponse) -> list[dict]:
         corps = mf.WA_VOTRE_CHOIX
     messages.append(boutons(corps, choix) if en_boutons else liste(corps, choix))
     return messages
+
+
+PARAMETRE_MAX = 100
+
+
+def parametre(valeur: str) -> dict:
+    """Une case du modèle : Meta refuse les retours à la ligne, les tabulations et les longues suites d'espaces."""
+    propre = " ".join(str(valeur).split())
+    return {"type": "text", "text": couper(propre, PARAMETRE_MAX)}
+
+
+def modele(nom: str, valeurs: list[str], langue: str = "fr") -> dict:
+    return {
+        "type": "template",
+        "template": {
+            "name": nom,
+            "language": {"code": langue},
+            "components": [{"type": "body", "parameters": [parametre(v) for v in valeurs]}],
+        },
+    }

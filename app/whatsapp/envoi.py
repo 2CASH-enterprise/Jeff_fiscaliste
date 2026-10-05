@@ -11,6 +11,11 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
+from app.rappels.canal import WHATSAPP
+from app.rappels.models import A_ENVOYER as A_ENVOYER_RAPPEL
+from app.rappels.models import ENVOYE as ENVOYE_RAPPEL
+from app.rappels.models import Rappel
+from app.rappels.repli import replier
 from app.whatsapp.models import A_ENVOYER, ECHEC, ENVOYE, WhatsappEnvoi
 
 ESSAIS_MAX = 3
@@ -26,7 +31,14 @@ class Bilan:
 
 
 class ErreurMeta(Exception):
-    pass
+    def __init__(self, message: str, code_http: int = 0):
+        super().__init__(message)
+        self.code_http = code_http
+
+    @property
+    def definitive(self) -> bool:
+        """Refus de Meta (modèle inconnu, numéro hors fenêtre…) : inutile de réessayer. 429 = trop d'envois."""
+        return 400 <= self.code_http < 500 and self.code_http != 429
 
 
 def url_messages() -> str:
@@ -47,7 +59,7 @@ def envoyer_graph(destinataire: str, contenu: dict) -> str:
             detail = f"{erreur.get('code')} {erreur.get('message')}"
         except ValueError:
             detail = reponse.text[:200]
-        raise ErreurMeta(f"HTTP {reponse.status_code} : {detail}")
+        raise ErreurMeta(f"HTTP {reponse.status_code} : {detail}", reponse.status_code)
     return reponse.json()["messages"][0]["id"]
 
 
@@ -62,15 +74,29 @@ def envoyer_un(session: Session, identifiant: int) -> bool | None:
     except Exception as erreur:
         envoi.essais += 1
         envoi.erreur = f"{type(erreur).__name__}: {erreur}"[:500].replace(get_settings().whatsapp_jeton or "\0", "***")
-        if envoi.essais >= ESSAIS_MAX:
-            envoi.statut = ECHEC
+        if envoi.essais >= ESSAIS_MAX or (isinstance(erreur, ErreurMeta) and erreur.definitive):
+            marquer_echec(session, envoi)
         session.commit()
         return False
     envoi.statut = ENVOYE
     envoi.envoye_le = datetime.now(timezone.utc)
     envoi.erreur = None
+    if envoi.rappel_id is not None:
+        rappel = session.get(Rappel, envoi.rappel_id)
+        if rappel.statut == A_ENVOYER_RAPPEL:
+            rappel.statut = ENVOYE_RAPPEL
+            rappel.envoye_le = envoi.envoye_le
     session.commit()
     return True
+
+
+def marquer_echec(session: Session, envoi: WhatsappEnvoi) -> None:
+    """Échec définitif : le rappel concerné repart par email ou dans la bulle."""
+    envoi.statut = ECHEC
+    if envoi.rappel_id is not None:
+        rappel = session.get(Rappel, envoi.rappel_id)
+        if rappel.canal == WHATSAPP:
+            replier(session, rappel)
 
 
 def envoyer_en_attente(session: Session) -> Bilan:

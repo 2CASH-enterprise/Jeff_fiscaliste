@@ -7,6 +7,7 @@ import hashlib
 import hmac
 from datetime import datetime, timezone
 
+from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
@@ -16,7 +17,7 @@ from app.conversation.moteur import LONGUEUR_MAX, traiter_message, trouver_ou_cr
 from app.conversation.reponse import Reponse
 from app.core.config import get_settings
 from app.whatsapp.format import contenus
-from app.whatsapp.models import A_ENVOYER, WhatsappEnvoi, WhatsappRecu
+from app.whatsapp.models import A_ENVOYER, ENVOYE, WhatsappEnvoi, WhatsappRecu
 
 
 def signature_valide(corps: bytes, entete: str | None) -> bool:
@@ -28,19 +29,54 @@ def signature_valide(corps: bytes, entete: str | None) -> bool:
     return hmac.compare_digest(attendue, entete.removeprefix("sha256="))
 
 
-def messages_recus(donnees: dict) -> list[dict]:
-    """Les messages de la notification destinés au numéro de Jeff."""
+def valeurs_pour_jeff(donnees: dict) -> list[dict]:
+    """Les blocs « value » de la notification qui concernent le numéro de Jeff."""
     numero = get_settings().whatsapp_id_numero
-    trouves = []
+    valeurs = []
     if not isinstance(donnees, dict) or donnees.get("object") != "whatsapp_business_account":
-        return trouves
+        return valeurs
     for entree in donnees.get("entry") or []:
         for changement in entree.get("changes") or []:
             valeur = changement.get("value") or {}
             if changement.get("field") != "messages" or (valeur.get("metadata") or {}).get("phone_number_id") != numero:
                 continue
-            trouves += [m for m in valeur.get("messages") or [] if m.get("id") and m.get("from")]
+            valeurs.append(valeur)
+    return valeurs
+
+
+def messages_recus(donnees: dict) -> list[dict]:
+    """Les messages de la notification destinés au numéro de Jeff."""
+    trouves = []
+    for valeur in valeurs_pour_jeff(donnees):
+        trouves += [m for m in valeur.get("messages") or [] if m.get("id") and m.get("from")]
     return trouves
+
+
+def statuts_recus(donnees: dict) -> list[dict]:
+    """Les accusés de Meta (envoyé, remis, lu, échec) des messages envoyés par Jeff."""
+    trouves = []
+    for valeur in valeurs_pour_jeff(donnees):
+        trouves += [s for s in valeur.get("statuses") or [] if s.get("id") and s.get("status")]
+    return trouves
+
+
+def traiter_statuts(session: Session, donnees: dict) -> int:
+    """Un message accepté par Meta peut échouer ensuite (modèle refusé, numéro injoignable) : repli du rappel."""
+    from app.whatsapp.envoi import marquer_echec
+
+    echecs = 0
+    for statut in statuts_recus(donnees):
+        if statut["status"] != "failed":
+            continue
+        envoi = session.scalars(select(WhatsappEnvoi).where(WhatsappEnvoi.wamid == str(statut["id"])[:200])).first()
+        if envoi is None or envoi.statut != ENVOYE:
+            continue
+        erreur = (statut.get("errors") or [{}])[0]
+        envoi.erreur = f"Meta : {erreur.get('code')} {erreur.get('title')}"[:500]
+        marquer_echec(session, envoi)
+        echecs += 1
+    session.flush()
+    return echecs
 
 
 def texte_du_message(message: dict) -> str | None:
@@ -70,6 +106,7 @@ def deja_recu(session: Session, wamid: str, conversation_id) -> bool:
 def traiter_notification(session: Session, donnees: dict) -> list[int]:
     """Traite les messages reçus ; renvoie les identifiants des réponses à envoyer, dans l'ordre."""
     envois: list[WhatsappEnvoi] = []
+    traiter_statuts(session, donnees)
     for message in messages_recus(donnees):
         numero = str(message["from"])[:32]
         conversation = trouver_ou_creer_conversation(session, CANAL_WHATSAPP, numero)

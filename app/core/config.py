@@ -7,7 +7,7 @@ from functools import lru_cache
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-VERSION = "0.9.0"
+VERSION = "0.10.0"
 
 
 class Settings(BaseSettings):
@@ -34,6 +34,9 @@ class Settings(BaseSettings):
     whatsapp_jeton_verification: str = ""
     whatsapp_id_numero: str = ""
     whatsapp_version_api: str = "v23.0"
+    # Lot 10 : compte WhatsApp Business (pour soumettre les modèles) et modèle des rappels.
+    whatsapp_id_compte: str = ""
+    whatsapp_modele_rappel: str = "jeff_rappel_echeance"
 
     @property
     def whatsapp_configure(self) -> bool:

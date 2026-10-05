@@ -248,3 +248,16 @@ TOUS = TOUS + (
     EMAIL_LIAISON_OBJET, EMAIL_LIAISON_TEXTE, WA_TYPE_NON_PRIS, WA_BOUTON_LISTE, WA_VOTRE_CHOIX,
     CHOIX_PROPOSITION[2][1],
 )
+
+
+# --- Modèle WhatsApp des rappels (lot 10), soumis à Meta -----------------------------------------
+# {{1}} raison sociale, {{2}} obligation, {{3}} période, {{4}} date limite. Une variable ne doit
+# ni ouvrir ni fermer le texte, et deux variables ne se suivent jamais (règles de Meta).
+
+MODELE_RAPPEL_TEXTE = (
+    "Bonjour, ceci est un rappel de Jeff pour « {{1}} » : {{2}}, période {{3}}, "
+    "à faire au plus tard le {{4}}. Répondez à ce message pour voir vos échéances ou poser une question."
+)
+MODELE_RAPPEL_EXEMPLE = ("Ets BABA", "Déclaration et paiement mensuels de la TVA", "septembre 2026", "jeudi 15 octobre 2026")
+
+TOUS = TOUS + (MODELE_RAPPEL_TEXTE,)

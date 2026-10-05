@@ -1,4 +1,6 @@
 """Point d'entrée de l'application web Jeff."""
+import logging
+import re
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -9,6 +11,20 @@ from app import models as _modeles  # noqa: F401 — enregistre tous les modèle
 from app.canaux import web, whatsapp
 from app.core.config import VERSION, get_settings
 from app.core.sante import OK, etat_general
+
+JETON_DANS_ADRESSE = re.compile(r"(verify_token=)[^&\s]*")
+
+
+class MasquerJetons(logging.Filter):
+    """Le journal des requêtes ne garde jamais le jeton de vérification de WhatsApp (lot 10)."""
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        if isinstance(record.args, tuple):
+            record.args = tuple(JETON_DANS_ADRESSE.sub(r"\1***", a) if isinstance(a, str) else a for a in record.args)
+        return True
+
+
+logging.getLogger("uvicorn.access").addFilter(MasquerJetons())
 
 app = FastAPI(
     title="Jeff",

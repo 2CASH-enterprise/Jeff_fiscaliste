@@ -801,7 +801,7 @@ def test_tables():
     assert {c["name"] for c in inspecteur.get_columns("whatsapp_recus")} == {"wamid", "conversation_id", "recu_le"}
     assert inspecteur.get_pk_constraint("whatsapp_recus")["constrained_columns"] == ["wamid"]
     envois = {c["name"]: c for c in inspecteur.get_columns("whatsapp_envois")}
-    assert set(envois) == {"id", "conversation_id", "destinataire", "contenu", "statut", "essais", "erreur", "wamid", "cree_le", "envoye_le"}
+    assert set(envois) >= {"id", "conversation_id", "destinataire", "contenu", "statut", "essais", "erreur", "wamid", "cree_le", "envoye_le"}
     for obligatoire in ("conversation_id", "destinataire", "contenu", "statut", "essais"):
         assert envois[obligatoire]["nullable"] is False
     assert {i["name"] for i in inspecteur.get_indexes("whatsapp_envois")} >= {"ix_whatsapp_envois_statut", "ix_whatsapp_envois_conversation_id"}
@@ -812,7 +812,7 @@ def test_proposition_a_trois_choix():
 
 
 def test_version():
-    assert VERSION == "0.9.0"
+    assert TestClient(app).get("/sante").json()["version"] == VERSION
 
 
 # --- Limites et reprise (compléments) -------------------------------------------------------------
