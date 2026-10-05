@@ -30,6 +30,7 @@ def main(arguments: list[str]) -> int:
     print(f"Fichier : {chemin.name}")
     print(f"Ajoutées : {len(bilan.ajoutees)} {', '.join(bilan.ajoutees)}")
     print(f"Statut modifié : {len(bilan.statut_modifie)} {', '.join(bilan.statut_modifie)}")
+    print(f"Domaine modifié : {len(bilan.domaine_modifie)} {', '.join(bilan.domaine_modifie)}")
     print(f"Inchangées : {len(bilan.inchangees)}")
     return 0
 

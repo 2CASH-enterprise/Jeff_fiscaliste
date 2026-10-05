@@ -2,8 +2,8 @@
 
 Le fichier (relu par le fiscaliste, versionné dans Git) est entièrement vérifié avant la
 moindre écriture. Une règle déjà chargée ne change jamais de contenu : toute modification
-passe par une nouvelle version. Seul le statut (à valider → publiée → retirée) peut évoluer
-sur une version existante.
+passe par une nouvelle version. Seuls le statut (à valider → publiée → retirée) et le domaine
+(fiscal ou social, lot 13) peuvent évoluer sur une version existante.
 """
 import json
 import re
@@ -18,14 +18,14 @@ from app.calendrier.dates import EcheanceInvalide
 from app.calendrier.dates import valider as valider_echeance
 from app.referentiel.models import Juridiction
 from app.regles.conditions import ConditionInvalide, valider
-from app.regles.models import PERIODICITES, STATUTS, TYPES, Regle
+from app.regles.models import DOMAINES, PERIODICITES, STATUTS, TYPES, Regle
 
-REQUIS = {"code", "version", "type", "impot", "titre", "description", "condition", "applicable_du", "statut"}
+REQUIS = {"code", "version", "type", "impot", "domaine", "titre", "description", "condition", "applicable_du", "statut"}
 OPTIONNELS = {
     "periodicite", "echeance", "echeance_calcul", "source_texte", "source_article", "source_url",
     "applicable_au", "ordre",
 }
-CONTENU = (REQUIS | OPTIONNELS) - {"statut"}
+CONTENU = (REQUIS | OPTIONNELS) - {"statut", "domaine"}
 
 
 class ReglesInvalides(ValueError):
@@ -39,6 +39,7 @@ class Bilan:
     ajoutees: list[str] = field(default_factory=list)
     inchangees: list[str] = field(default_factory=list)
     statut_modifie: list[str] = field(default_factory=list)
+    domaine_modifie: list[str] = field(default_factory=list)
 
 
 def lire_date(valeur, nom: str, erreurs: list[str]) -> date | None:
@@ -72,6 +73,8 @@ def verifier_regle(brute: dict, position: int) -> tuple[dict, list[str]]:
         erreurs.append(f"{nom} : type inconnu {brute['type']!r}.")
     if brute["statut"] not in STATUTS:
         erreurs.append(f"{nom} : statut inconnu {brute['statut']!r}.")
+    if brute["domaine"] not in DOMAINES:
+        erreurs.append(f"{nom} : domaine inconnu {brute['domaine']!r} (fiscal ou social).")
     periodicite = brute.get("periodicite")
     if periodicite is not None and periodicite not in PERIODICITES:
         erreurs.append(f"{nom} : périodicité inconnue {periodicite!r}.")
@@ -154,10 +157,14 @@ def charger(session: Session, donnees: dict) -> Bilan:
         if deja is None:
             session.add(Regle(juridiction_code=juridiction, **regle))
             bilan.ajoutees.append(nom)
-        elif deja.statut != regle["statut"]:
+            continue
+        if deja.statut != regle["statut"]:
             deja.statut = regle["statut"]
             bilan.statut_modifie.append(nom)
-        else:
+        if deja.domaine != regle["domaine"]:
+            deja.domaine = regle["domaine"]
+            bilan.domaine_modifie.append(nom)
+        if nom not in bilan.statut_modifie + bilan.domaine_modifie:
             bilan.inchangees.append(nom)
     session.flush()
     return bilan

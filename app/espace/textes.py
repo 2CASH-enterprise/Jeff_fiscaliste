@@ -63,8 +63,6 @@ AVERTISSEMENT_VALIDATION = (
 
 BIENTOT_TITRE = "Bientôt disponible"
 BIENTOT = {
-    "echeances": "Votre calendrier mois par mois arrive dans une prochaine version. En attendant, vos prochaines échéances sont sur l'accueil.",
-    "obligations": "La liste détaillée de vos obligations, avec leurs sources, arrive dans une prochaine version.",
     "documents": "Vous pourrez bientôt déposer ici vos factures, bulletins de paie et déclarations, en photo ou en PDF.",
 }
 
@@ -86,6 +84,43 @@ MODIFIER_AIDE = (
     "Le NIU ne se modifie pas."
 )
 
+# --- Lot 13 : Échéances et Obligations ---------------------------------------------------------
+
+MOIS_PRECEDENT = "Mois précédent"
+MOIS_SUIVANT = "Mois suivant"
+ECHEANCES_DATEES = "Dates limites"
+AUCUNE_DATE_CE_MOIS = "Aucune date limite connue ce mois-ci."
+DATE_A_CONFIRMER = "Date à confirmer"
+DATE_A_CONFIRMER_AIDE = "Ces obligations reviennent chaque mois ; leur date limite sera ajoutée après validation par un fiscaliste."
+SANS_DATE_CONNUE = "Autres obligations sans date connue"
+PASSEE = "Date passée"
+RAPPEL_PREVU = "Rappel J-{palier} le {date}"
+INCERTAINES_LIEN = "{nombre} obligation(s) à confirmer selon votre profil"
+VOIR_DETAIL = "Voir le détail"
+VOIR_CALENDRIER = "Voir le calendrier"
+VOIR_OBLIGATIONS = "Voir vos obligations"
+
+FILTRES = (("fiscales", "Fiscales"), ("sociales", "Sociales"), ("a_confirmer", "À confirmer"))
+FILTRE_VIDE = {
+    "fiscales": "Aucune obligation fiscale ne ressort de votre profil pour l'instant.",
+    "sociales": "Aucune obligation sociale ne ressort de votre profil pour l'instant.",
+    "a_confirmer": "Rien à confirmer : votre profil permet à Jeff de trancher pour chaque obligation.",
+}
+POINTS_ATTENTION = "Points d'attention"
+FREQUENCE = "Fréquence"
+ECHEANCE = "Échéance"
+PROCHAINE_DATE = "Prochaine date limite"
+SOURCE = "Source"
+OUVRIR_SOURCE = "Ouvrir la source"
+POURQUOI = "Pourquoi cette obligation ?"
+POURQUOI_A_CONFIRMER = "Pourquoi à confirmer ?"
+D_APRES_PROFIL = "D'après votre profil :"
+INFORMATIONS_MANQUANTES = "Jeff n'a pas encore ces informations :"
+TOUTES_LES_ENTREPRISES = "Cette règle s'applique à toutes les entreprises."
+EN_ATTENTE_VALIDATION = "En attente de validation"
+VALIDATION_DETAIL = "Cette règle n'a pas encore été validée par un fiscaliste. En cas de doute, demandez à Jeff."
+SANS_SOURCE = "Source à préciser par le fiscaliste."
+
 EMAIL_CONNEXION_OBJET = "Votre code de connexion Jeff"
 EMAIL_CONNEXION_TEXTE = (
     "Bonjour,\n\nVoici votre code pour ouvrir votre coffre fiscal Jeff ({entreprises}) : {code}\n\n"
@@ -103,4 +138,9 @@ TOUS = (
     OBLIGATIONS_SUIVIES, OBLIGATIONS_A_CONFIRMER, AVERTISSEMENT_VALIDATION, BIENTOT_TITRE, *BIENTOT.values(),
     PROFIL, NIU_VERROUILLE, CONTACT, EMAIL, EMAIL_CONFIRMEE, WHATSAPP, WHATSAPP_RELIE, WHATSAPP_AUCUN, RAPPELS,
     RAPPELS_WHATSAPP, RAPPELS_EMAIL, ACTIFS, ARRETES, MODIFIER_AIDE, EMAIL_CONNEXION_OBJET, EMAIL_CONNEXION_TEXTE,
+    MOIS_PRECEDENT, MOIS_SUIVANT, ECHEANCES_DATEES, AUCUNE_DATE_CE_MOIS, DATE_A_CONFIRMER, DATE_A_CONFIRMER_AIDE,
+    SANS_DATE_CONNUE, PASSEE, RAPPEL_PREVU, INCERTAINES_LIEN, VOIR_DETAIL, VOIR_CALENDRIER, VOIR_OBLIGATIONS,
+    *(l for _, l in FILTRES), *FILTRE_VIDE.values(), POINTS_ATTENTION, FREQUENCE, ECHEANCE, PROCHAINE_DATE, SOURCE,
+    OUVRIR_SOURCE, POURQUOI, POURQUOI_A_CONFIRMER, D_APRES_PROFIL, INFORMATIONS_MANQUANTES, TOUTES_LES_ENTREPRISES,
+    EN_ATTENTE_VALIDATION, VALIDATION_DETAIL, SANS_SOURCE,
 )

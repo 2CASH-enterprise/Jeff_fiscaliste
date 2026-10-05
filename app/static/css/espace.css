@@ -165,3 +165,40 @@ a { color: var(--esp-bleu); }
 .esp-bientot { text-align: center; padding: 32px 20px; max-width: 520px; }
 .esp-bientot .esp-puce { margin: 0 auto 12px; width: 52px; height: 52px; border-radius: 14px; }
 .esp-bientot h2 { font-size: 18px; font-weight: 800; }
+
+/* --- Lot 13 : Échéances et Obligations ----------------------------------- */
+a.esp-chiffre { display: block; color: var(--esp-texte); text-decoration: none; }
+a.esp-chiffre:hover { border-color: var(--esp-bleu-vif); }
+.esp-vedette-lien { display: inline-flex; align-items: center; gap: 4px; margin-top: 14px; color: #fff; font-weight: 700; font-size: 14px; }
+.esp-section-lien { color: inherit; text-decoration: none; }
+.esp-mois { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; }
+.esp-mois-nom { font-size: 17px; font-weight: 800; margin: 0; text-transform: capitalize; }
+.esp-mois-fleche { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 10px; color: var(--esp-bleu); }
+.esp-mois-fleche:hover { background: var(--esp-bleu-pale); }
+.esp-inactif { color: var(--esp-bordure); }
+.esp-ligne-haute { align-items: flex-start; }
+.esp-lien-titre { color: var(--esp-texte); text-decoration: none; }
+.esp-lien-titre:hover { color: var(--esp-bleu); text-decoration: underline; }
+.esp-ligne-alerte { display: flex; gap: 6px; align-items: center; font-size: 13px; color: var(--esp-orange); margin-top: 2px; }
+.esp-rappel { display: flex; gap: 6px; align-items: center; margin-top: 2px; }
+.esp-passee .esp-ligne-titre, .esp-passee .esp-date { opacity: .6; }
+.esp-etiquette-orange { background: var(--esp-orange-pale); color: var(--esp-orange); }
+.esp-etiquette-bleu { background: var(--esp-bleu-pale); color: var(--esp-bleu); }
+.esp-puce-grise { background: var(--esp-gris-pale); color: var(--esp-doux); }
+
+.esp-filtres { display: flex; gap: 4px; background: var(--esp-gris-pale); border-radius: 12px; padding: 4px; margin-bottom: 14px; max-width: 520px; }
+.esp-filtres a { flex: 1; text-align: center; padding: 8px 4px; border-radius: 9px; font-weight: 700; font-size: 14px; color: var(--esp-doux); text-decoration: none; white-space: nowrap; }
+.esp-filtres a.actif { background: var(--esp-surface); color: var(--esp-texte); box-shadow: 0 1px 2px rgba(0, 0, 0, .08); }
+.esp-compteur { font-weight: 600; color: var(--esp-doux); }
+.esp-liste-fiches { display: flex; flex-direction: column; gap: 10px; }
+.esp-fiche-obligation { padding: 0; scroll-margin-top: 90px; }
+.esp-fiche-obligation summary { display: flex; align-items: center; gap: 10px; padding: 14px 16px; cursor: pointer; list-style: none; }
+.esp-fiche-obligation summary::-webkit-details-marker { display: none; }
+.esp-fiche-obligation summary > svg { flex: none; color: var(--esp-doux); transition: transform .15s; }
+.esp-fiche-obligation[open] summary > svg { transform: rotate(180deg); }
+.esp-fiche-obligation:target { border-color: var(--esp-bleu-vif); }
+.esp-fiche-corps { padding: 0 16px 14px; border-top: 1px solid var(--esp-gris-pale); padding-top: 12px; }
+.esp-sous-titre { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--esp-doux); margin: 14px 0 6px; }
+.esp-puces { margin: 0 0 6px; padding-left: 18px; }
+@media (min-width: 992px) { .esp-section-haut-ordi { margin-top: 0; } }
+.esp-etiquette-sous { align-self: flex-start; margin-top: 6px; }

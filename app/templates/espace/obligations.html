@@ -1,0 +1,67 @@
+{% extends "espace/base.html" %}
+{% from "espace/icones.html" import icone %}
+{% block titre %}Obligations{% endblock %}
+{% macro fiche(o) %}
+<details class="esp-carte esp-fiche-obligation" id="{{ o.code }}">
+  <summary>
+    <span class="esp-ligne-texte">
+      <span class="esp-ligne-titre">{{ o.titre }}</span>
+      <span class="esp-ligne-sous">{{ o.frequence or "" }}{% if o.frequence and o.prochaine %} · {% endif %}{% if o.prochaine %}{{ tx.PROCHAINE_DATE }} : {{ o.prochaine }}{% endif %}</span>
+      {% if o.a_valider %}<span class="esp-etiquette esp-etiquette-orange esp-etiquette-sous">{{ tx.EN_ATTENTE_VALIDATION }}</span>{% endif %}
+    </span>
+    {{ icone("bas", 18) }}
+  </summary>
+  <div class="esp-fiche-corps">
+    <p>{{ o.description }}</p>
+    <dl class="esp-fiche">
+      {% if o.frequence %}<div class="esp-fiche-ligne"><dt>{{ tx.FREQUENCE }}</dt><dd>{{ o.frequence }}</dd></div>{% endif %}
+      <div class="esp-fiche-ligne"><dt>{{ tx.ECHEANCE }}</dt><dd>{{ o.echeance or tx.DATE_A_CONFIRMER }}</dd></div>
+      {% if o.prochaine %}<div class="esp-fiche-ligne"><dt>{{ tx.PROCHAINE_DATE }}</dt><dd>{{ o.prochaine }}</dd></div>{% endif %}
+    </dl>
+    <h3 class="esp-sous-titre">{{ tx.POURQUOI_A_CONFIRMER if o.incertaine else tx.POURQUOI }}</h3>
+    {% if o.raisons %}<p class="esp-note mb-1">{{ tx.D_APRES_PROFIL }}</p>
+    <ul class="esp-puces">{% for r in o.raisons %}<li>{{ r }}</li>{% endfor %}</ul>{% endif %}
+    {% if o.manquants %}<p class="esp-note mb-1">{{ tx.INFORMATIONS_MANQUANTES }}</p>
+    <ul class="esp-puces">{% for m in o.manquants %}<li>{{ m }}</li>{% endfor %}</ul>
+    <p class="esp-note">{{ tx.A_CONFIRMER_AIDE }}</p>{% endif %}
+    <h3 class="esp-sous-titre">{{ tx.SOURCE }}</h3>
+    {% if o.source_texte or o.source_url %}
+    <p class="mb-1">{{ o.source_texte or "" }}{% if o.source_article %}, {{ o.source_article }}{% endif %}</p>
+    {% if o.source_url %}<p class="mb-1"><a href="{{ o.source_url }}" target="_blank" rel="noopener noreferrer">{{ tx.OUVRIR_SOURCE }}</a></p>{% endif %}
+    {% else %}<p class="esp-note mb-1">{{ tx.SANS_SOURCE }}</p>{% endif %}
+    {% if o.a_valider %}<p class="esp-note esp-avertissement mb-0">{{ icone("info", 16) }}<span>{{ tx.VALIDATION_DETAIL }}</span></p>{% endif %}
+  </div>
+</details>
+{% endmacro %}
+{% block contenu %}
+<h1 class="esp-titre">Obligations</h1>
+<nav class="esp-filtres" aria-label="Filtres">
+  {% for cle, libelle in tx.FILTRES %}
+  <a href="{{ url_for('espace_obligations').include_query_params(filtre=cle) }}" class="{% if cle == filtre %}actif{% endif %}"{% if cle == filtre %} aria-current="true"{% endif %}>{{ libelle }} <span class="esp-compteur">{{ obligations.liste(cle) | length }}</span></a>
+  {% endfor %}
+</nav>
+<div class="esp-grille">
+  <div>
+    <div class="esp-liste-fiches">
+      {% for o in obligations.liste(filtre) %}{{ fiche(o) }}{% else %}
+      <section class="esp-carte"><p class="mb-0">{{ tx.FILTRE_VIDE[filtre] }}</p></section>
+      {% endfor %}
+    </div>
+  </div>
+  <div>
+    {% if obligations.alertes %}
+    <h2 class="esp-section esp-section-haut-ordi">{{ tx.POINTS_ATTENTION }}</h2>
+    <div class="esp-liste-fiches">{% for o in obligations.alertes %}{{ fiche(o) }}{% endfor %}</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+  // Lien vers une obligation précise (#CODE) : la fiche s'ouvre d'elle-même.
+  (function () {
+    var cible = location.hash ? document.getElementById(decodeURIComponent(location.hash.slice(1))) : null;
+    if (cible && cible.tagName === "DETAILS") { cible.open = true; }
+  })();
+</script>
+{% endblock %}

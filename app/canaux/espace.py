@@ -21,7 +21,7 @@ COOKIE_DEMANDE = "jeff_connexion"
 COOKIE_SESSION = "jeff_espace"
 DUREE_COOKIE_DEMANDE = 3600
 DUREE_COOKIE_SESSION = int(connexion.DUREE_SESSION.total_seconds())
-BIENTOT = ("echeances", "obligations", "documents")
+BIENTOT = ("documents",)
 
 MESSAGES_CODE = {
     connexion.FORMAT: tx.CODE_FORMAT,
@@ -231,6 +231,26 @@ def entreprise(request: Request, session: Session = Depends(session_requete)):
         return redirection
     contexte["fiche"] = donnees.fiche(session, contexte["entreprise"])
     return page(request, "entreprise.html", contexte)
+
+
+@router.get("/echeances", response_class=HTMLResponse, name="espace_echeances")
+def echeances(request: Request, mois: str = "", session: Session = Depends(session_requete)):
+    contexte, redirection = contexte_espace(request, session, "echeances")
+    if redirection:
+        return redirection
+    contexte["mois"] = donnees.mois_affiche(session, contexte["entreprise"], mois[:7])
+    contexte["filtre_du_domaine"] = donnees.FILTRE_DU_DOMAINE
+    return page(request, "echeances.html", contexte)
+
+
+@router.get("/obligations", response_class=HTMLResponse, name="espace_obligations")
+def obligations(request: Request, filtre: str = "", session: Session = Depends(session_requete)):
+    contexte, redirection = contexte_espace(request, session, "obligations")
+    if redirection:
+        return redirection
+    contexte["filtre"] = filtre if filtre in donnees.FILTRES else donnees.FISCALES
+    contexte["obligations"] = donnees.obligations(session, contexte["entreprise"])
+    return page(request, "obligations.html", contexte)
 
 
 def bientot(onglet: str):

@@ -634,7 +634,7 @@ def test_navigation_cinq_onglets(espace, session):
     assert "<span>Entreprise</span>" in client.get("/espace/accueil").text
 
 
-@pytest.mark.parametrize("onglet", ["echeances", "obligations", "documents"])
+@pytest.mark.parametrize("onglet", ["documents"])
 def test_onglets_bientot(espace, session, onglet):
     adresse = adresse_unique()
     creer(session, "Ets Chi", adresse)
@@ -888,5 +888,4 @@ def test_import_des_modeles_seul():
 
 
 def test_version():
-    assert VERSION == "0.12.0"
     assert TestClient(app).get("/sante").json()["version"] == VERSION

@@ -20,6 +20,12 @@ STATUTS = (BROUILLON, A_VALIDER, PUBLIEE, RETIREE)
 # Statuts montrés aux clients ; « à valider » l'est avec un avertissement.
 STATUTS_VISIBLES = (A_VALIDER, PUBLIEE)
 
+# Lot 13 : classement montré dans le coffre (onglet Obligations). Il peut changer sur une version
+# déjà chargée, comme le statut : ce n'est pas le contenu juridique de la règle.
+FISCAL = "fiscal"
+SOCIAL = "social"
+DOMAINES = (FISCAL, SOCIAL)
+
 PERIODICITES = {
     "mensuelle": "Chaque mois",
     "trimestrielle": "Chaque trimestre",
@@ -40,6 +46,7 @@ class Regle(Base):
     version: Mapped[int] = mapped_column(Integer)
     type: Mapped[str] = mapped_column(String(20))
     impot: Mapped[str] = mapped_column(String(40))
+    domaine: Mapped[str] = mapped_column(String(10), default=FISCAL, server_default=FISCAL)
     titre: Mapped[str] = mapped_column(String(200))
     description: Mapped[str] = mapped_column(Text)
     condition: Mapped[dict] = mapped_column(JSONB)

@@ -1,0 +1,66 @@
+{% extends "espace/base.html" %}
+{% from "espace/icones.html" import icone %}
+{% block titre %}Échéances{% endblock %}
+{% block contenu %}
+<h1 class="esp-titre">Échéances</h1>
+<nav class="esp-carte esp-mois" aria-label="Mois">
+  {% if mois.precedent %}
+  <a class="esp-mois-fleche" href="{{ url_for('espace_echeances').include_query_params(mois=mois.precedent) }}" aria-label="{{ tx.MOIS_PRECEDENT }}" title="{{ tx.MOIS_PRECEDENT }}">{{ icone("precedent", 22) }}</a>
+  {% else %}<span class="esp-mois-fleche esp-inactif" aria-hidden="true">{{ icone("precedent", 22) }}</span>{% endif %}
+  <h2 class="esp-mois-nom">{{ mois.libelle }}</h2>
+  {% if mois.suivant %}
+  <a class="esp-mois-fleche" href="{{ url_for('espace_echeances').include_query_params(mois=mois.suivant) }}" aria-label="{{ tx.MOIS_SUIVANT }}" title="{{ tx.MOIS_SUIVANT }}">{{ icone("suivant", 22) }}</a>
+  {% else %}<span class="esp-mois-fleche esp-inactif" aria-hidden="true">{{ icone("suivant", 22) }}</span>{% endif %}
+</nav>
+
+<div class="esp-grille">
+  <div>
+    <h2 class="esp-section">{{ tx.ECHEANCES_DATEES }}</h2>
+    <section class="esp-carte">
+      {% for e in mois.datees %}
+      <div class="esp-ligne esp-ligne-haute{% if e.jours < 0 %} esp-passee{% endif %}">
+        <span class="esp-date"><strong>{{ e.date_limite.day }}</strong><span>{{ e.mois_court }}</span></span>
+        <span class="esp-ligne-texte">
+          <a class="esp-ligne-titre esp-lien-titre" href="{{ url_for('espace_obligations').include_query_params(filtre=filtre_du_domaine[e.domaine]) }}#{{ e.code }}">{{ e.titre }}</a>
+          <span class="esp-ligne-sous">{{ tx.PERIODE.format(periode=e.periode) }} · {{ e.date_texte }}</span>
+          {% if e.alerte %}<span class="esp-ligne-alerte">{{ icone("alerte", 15) }}{{ e.alerte }}</span>{% endif %}
+          {% for palier, quand in e.rappels %}<span class="esp-ligne-sous esp-rappel">{{ icone("cloche", 14) }}{{ tx.RAPPEL_PREVU.format(palier=palier, date=quand) }}</span>{% endfor %}
+        </span>
+        {% if e.jours < 0 %}<span class="esp-etiquette esp-etiquette-gris">{{ tx.PASSEE }}</span>
+        {% elif e.jours == 0 %}<span class="esp-etiquette esp-etiquette-orange">{{ tx.AUJOURD_HUI }}</span>
+        {% elif e.jours == 1 %}<span class="esp-etiquette esp-etiquette-orange">{{ tx.DEMAIN }}</span>
+        {% else %}<span class="esp-etiquette {{ 'esp-etiquette-orange' if e.jours <= 7 else 'esp-etiquette-bleu' }}">{{ e.jours }} j</span>{% endif %}
+      </div>
+      {% else %}
+      <p class="mb-0">{{ tx.AUCUNE_DATE_CE_MOIS }}</p>
+      {% endfor %}
+    </section>
+  </div>
+  <div>
+    {% if mois.a_confirmer %}
+    <h2 class="esp-section esp-section-haut-ordi">{{ tx.DATE_A_CONFIRMER }}</h2>
+    <section class="esp-carte">
+      {% for code, titre, domaine in mois.a_confirmer %}
+      <div class="esp-ligne"><span class="esp-puce esp-puce-grise">{{ icone("horloge", 18) }}</span>
+        <span class="esp-ligne-texte"><a class="esp-ligne-titre esp-lien-titre" href="{{ url_for('espace_obligations').include_query_params(filtre=filtre_du_domaine[domaine]) }}#{{ code }}">{{ titre }}</a></span></div>
+      {% endfor %}
+      <p class="esp-note mt-2 mb-0">{{ tx.DATE_A_CONFIRMER_AIDE }}</p>
+    </section>
+    {% endif %}
+    {% if mois.sans_date %}
+    <h2 class="esp-section">{{ tx.SANS_DATE_CONNUE }}</h2>
+    <section class="esp-carte">
+      {% for code, titre, domaine in mois.sans_date %}
+      <div class="esp-ligne"><span class="esp-ligne-texte"><a class="esp-ligne-titre esp-lien-titre" href="{{ url_for('espace_obligations').include_query_params(filtre=filtre_du_domaine[domaine]) }}#{{ code }}">{{ titre }}</a></span></div>
+      {% endfor %}
+    </section>
+    {% endif %}
+    {% if mois.incertaines %}
+    <p class="esp-note esp-avertissement">{{ icone("info", 16) }}<a href="{{ url_for('espace_obligations').include_query_params(filtre='a_confirmer') }}">{{ tx.INCERTAINES_LIEN.format(nombre=mois.incertaines) }}</a></p>
+    {% endif %}
+    {% if mois.a_valider %}
+    <p class="esp-note esp-avertissement">{{ icone("info", 16) }}<span>{{ tx.AVERTISSEMENT_VALIDATION }}</span></p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

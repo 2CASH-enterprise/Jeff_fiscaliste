@@ -7,6 +7,7 @@
       "version": 1,
       "type": "obligation",
       "impot": "TVA",
+      "domaine": "fiscal",
       "titre": "Déclaration et paiement mensuels de la TVA",
       "description": "Vous reversez chaque mois la TVA collectée sur vos ventes, après déduction de la TVA payée sur vos achats lorsque vous y avez droit.",
       "condition": {
@@ -27,6 +28,7 @@
       "version": 2,
       "type": "obligation",
       "impot": "TVA",
+      "domaine": "fiscal",
       "titre": "Déclaration et paiement mensuels de la TVA",
       "description": "Vous reversez chaque mois la TVA collectée sur vos ventes, après déduction de la TVA payée sur vos achats lorsque vous y avez droit.",
       "condition": {
@@ -51,6 +53,7 @@
       "version": 1,
       "type": "obligation",
       "impot": "IS / IRPP",
+      "domaine": "fiscal",
       "titre": "Acompte mensuel d'impôt sur le chiffre d'affaires",
       "description": "Acompte calculé chaque mois sur votre chiffre d'affaires, imputé ensuite sur l'impôt annuel (impôt sur les sociétés ou IRPP).",
       "condition": {
@@ -74,6 +77,7 @@
       "version": 1,
       "type": "obligation",
       "impot": "Impôt libératoire",
+      "domaine": "fiscal",
       "titre": "Paiement trimestriel de l'impôt libératoire",
       "description": "Au régime de l'impôt libératoire, vous payez un impôt forfaitaire chaque trimestre.",
       "condition": {
@@ -91,6 +95,7 @@
       "version": 1,
       "type": "obligation",
       "impot": "Patente",
+      "domaine": "fiscal",
       "titre": "Patente",
       "description": "Impôt local annuel dû pour l'exercice d'une activité professionnelle.",
       "condition": {
@@ -112,6 +117,7 @@
       "version": 1,
       "type": "obligation",
       "impot": "IRPP salaires / CNPS",
+      "domaine": "social",
       "titre": "Retenues sur salaires et déclaration mensuelle des salaires (DIPE)",
       "description": "Chaque mois, vous déclarez les salaires versés, reversez l'impôt retenu sur les salaires et payez les cotisations sociales.",
       "condition": {
@@ -129,6 +135,7 @@
       "version": 1,
       "type": "obligation",
       "impot": "CNPS",
+      "domaine": "social",
       "titre": "Immatriculation de l'employeur et des salariés à la CNPS",
       "description": "Votre profil indique des salariés mais pas de numéro d'employeur CNPS. Si vous n'êtes pas encore immatriculé, faites-le auprès de la CNPS ; sinon, complétez votre profil.",
       "condition": {
@@ -155,6 +162,7 @@
       "version": 1,
       "type": "alerte",
       "impot": "TVA",
+      "domaine": "fiscal",
       "titre": "Régime simplifié et TVA",
       "description": "Vous avez déclaré à la fois le régime simplifié et l'assujettissement à la TVA. Ce cas mérite une vérification : la fiche TVA de la DGI réserve la déduction de la TVA au régime du réel. Vérifiez votre régime et votre statut TVA, puis corrigez votre profil si besoin.",
       "condition": {

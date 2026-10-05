@@ -219,7 +219,7 @@ def test_la_version_2_remplace_la_version_1(session):
 
 def regle(**champs):
     base = {
-        "code": "ECH_" + uuid.uuid4().hex[:8].upper(), "version": 1, "type": "obligation", "impot": "TVA",
+        "code": "ECH_" + uuid.uuid4().hex[:8].upper(), "version": 1, "type": "obligation", "impot": "TVA", "domaine": "fiscal",
         "titre": "Test", "description": "Test.", "condition": {"toujours": True}, "periodicite": "mensuelle",
         "applicable_du": "2026-01-01", "statut": "a_valider",
     }

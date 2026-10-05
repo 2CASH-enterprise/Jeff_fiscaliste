@@ -119,7 +119,7 @@ def regle_type(**champs):
         "code": "REGLE_TEST_" + uuid.uuid4().hex[:8].upper(),
         "version": 1,
         "type": "obligation",
-        "impot": "TVA",
+        "impot": "TVA", "domaine": "fiscal",
         "titre": "Règle de test",
         "description": "Description de test.",
         "condition": {"toujours": True},
