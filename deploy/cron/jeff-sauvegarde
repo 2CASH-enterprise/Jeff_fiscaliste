@@ -1,0 +1,5 @@
+# Jeff — sauvegarde nocturne (lot 16). Copié dans /etc/cron.d/jeff-sauvegarde (propriétaire root, droits 644).
+# 3 h à Douala = 2 h UTC (le serveur est à l'heure UTC ; Douala est à UTC+1 toute l'année).
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+0 2 * * * root /opt/jeff/deploy/sauvegarde.sh >> /opt/jeff/sauvegardes/cron.log 2>&1

@@ -625,7 +625,6 @@ MUTATIONS = {
         ("app/templates/espace/entreprise.html", '((" (" ~ numero ~ ")") if fiche.whatsapp | length > 1 else "")', '(" (" ~ numero ~ ")")'),
     ],
     "lot15": [
-        ("app/core/config.py", 'VERSION = "0.15.0"', 'VERSION = "0.14.0"'),
         ("app/core/config.py", '    documents_dossier: str = "uploads/documents"', '    documents_dossier: str = "documents"'),
         ("app/documents/stockage.py", "TAILLE_MAX = 10 * MO", "TAILLE_MAX = 11 * MO"),
         ("app/documents/stockage.py", "QUOTA = 500 * MO", "QUOTA = 501 * MO"),
@@ -692,9 +691,46 @@ MUTATIONS = {
         ("docker-compose.yml", "      - jeff_documents:/data/documents\n", ""),
         ("Dockerfile", "    && chown jeff:jeff /data/documents\n", "\n"),
     ],
+    "lot16": [
+        ("app/core/config.py", 'VERSION = "0.16.0"', 'VERSION = "0.15.0"'),
+        ("deploy/sauvegarde.sh", "umask 077", "umask 022"),
+        ("deploy/sauvegarde.sh", "QUOTIDIENNES=7", "QUOTIDIENNES=8"),
+        ("deploy/sauvegarde.sh", "HEBDOMADAIRES=4", "HEBDOMADAIRES=5"),
+        ("deploy/sauvegarde.sh", "if ! grep -qx 'name: jeff' docker-compose.yml 2>/dev/null; then", "if false; then"),
+        ("deploy/sauvegarde.sh", 'chmod 700 "$DESTINATION"', 'chmod 755 "$DESTINATION"'),
+        ("deploy/sauvegarde.sh", "if ! flock -n 9; then", "if false; then"),
+        ("deploy/sauvegarde.sh", 'if [ ! -s "$CLE_PUBLIQUE" ]; then', "if false; then"),
+        ("deploy/sauvegarde.sh", 'if [[ ! "$DESTINATAIRE" =~ ^age1[02-9ac-hj-np-z]{58}$ ]]; then', 'if [[ ! "$DESTINATAIRE" =~ ^age1 ]]; then'),
+        ("deploy/sauvegarde.sh", "DESTINATAIRE=\"$(tr -d '[:space:]' < \"$CLE_PUBLIQUE\")\"", "DESTINATAIRE=\"$(cat \"$CLE_PUBLIQUE\")\""),
+        ("deploy/sauvegarde.sh", 'if [ "$JOUR_SEMAINE" = "7" ]; then', 'if [ "$JOUR_SEMAINE" = "1" ]; then'),
+        ("deploy/sauvegarde.sh", "trap 'rm -rf \"$TRAVAIL\" \"$PARTIEL\"' EXIT", "trap 'true' EXIT"),
+        ("deploy/sauvegarde.sh", "trap 'journal \"ECHEC ligne $LINENO", "trap 'true \"ECHEC ligne $LINENO"),
+        ("deploy/sauvegarde.sh", '"$DOCKER" compose exec -T db pg_dump -U jeff -d jeff --format=custom', '"$DOCKER" compose exec -T db pg_dump -U jeff -d jeff'),
+        ("deploy/sauvegarde.sh", 'if [ "$(head -c 5 "$TRAVAIL/jeff/base.dump")" != "PGDMP" ]; then', "if false; then"),
+        ("deploy/sauvegarde.sh", "tar -C /data/documents -cf - .", "tar -C /data -cf - ."),
+        ("deploy/sauvegarde.sh", '    echo "documents=$(tar', '    echo "fichiers=$(tar'),
+        ("deploy/sauvegarde.sh", "(cd \"$TRAVAIL/jeff\" && sha256sum base.dump documents.tar info.txt > SHA256SUMS)", "(cd \"$TRAVAIL/jeff\" && sha256sum base.dump documents.tar > SHA256SUMS)"),
+        ("deploy/sauvegarde.sh", 'tar -C "$TRAVAIL" -cf - jeff | age -r "$DESTINATAIRE" -o "$PARTIEL"', 'tar -C "$TRAVAIL" -cf "$PARTIEL" jeff'),
+        ("deploy/sauvegarde.sh", "find \"$DESTINATION\" -maxdepth 1 -name 'jeff_quotidienne_*.tar.age' -printf '%f\\n' | sort -r", "find \"$DESTINATION\" -maxdepth 1 -name 'jeff_quotidienne_*.tar.age' -printf '%f\\n' | sort"),
+        ("deploy/sauvegarde.sh", "find \"$DESTINATION\" -maxdepth 1 -name 'jeff_hebdomadaire_*.tar.age' -printf '%f\\n' | sort -r", "find \"$DESTINATION\" -maxdepth 1 -name 'jeff_quotidienne_*.tar.age' -printf '%f\\n' | sort -r"),
+        ("deploy/sauvegarde.sh", 'journal "OK $NOM', 'echo "OK $NOM'),
+        ("deploy/sauvegarde_etat.sh", "LIMITE_HEURES=26", "LIMITE_HEURES=27"),
+        ("deploy/sauvegarde_etat.sh", 'if [ "$HEURES" -ge "$LIMITE_HEURES" ]; then', 'if [ "$HEURES" -gt "$LIMITE_HEURES" ]; then'),
+        ("deploy/sauvegarde_etat.sh", "-printf '%T@ %f\\n' 2>/dev/null | sort -rn", "-printf '%T@ %f\\n' 2>/dev/null | sort -n"),
+        ("deploy/sauvegarde_etat.sh", '    echo "ATTENTION : aucune sauvegarde dans $DESTINATION."\n    exit 1', '    echo "ATTENTION : aucune sauvegarde dans $DESTINATION."\n    exit 0'),
+        ("deploy/restauration_essai.sh", 'ESSAI="jeff_restauration_essai"', 'ESSAI="jeff"'),
+        ("deploy/restauration_essai.sh", 'if [ -z "$FICHIER" ] || [ ! -f "$FICHIER" ]; then', 'if [ -z "$FICHIER" ]; then'),
+        ("deploy/restauration_essai.sh", "    base_essai dropdb -U jeff --if-exists \"$ESSAI\" > /dev/null 2>&1 || true\n", ""),
+        ("deploy/restauration_essai.sh", '(cd "$TRAVAIL/jeff" && sha256sum --quiet -c SHA256SUMS)', 'true'),
+        ("deploy/restauration_essai.sh", 'if [ "$DOCUMENTS_BASE" != "$DOCUMENTS_FICHIERS" ]; then', "if false; then"),
+        ("deploy/restauration_essai.sh", 'DOCUMENTS_BASE="$(compter documents)"', 'DOCUMENTS_BASE="$(compter entreprises)"'),
+        ("deploy/cron/jeff-sauvegarde", "0 2 * * * root", "0 3 * * * root"),
+    ],
 }
 
 
+# Lot 16 : « --exit-on-error » retirée, équivalente pour l'essai (pg_restore sort de toute façon en erreur,
+# et le script s'arrête).
 # Lot 15 : « not isinstance(valeur, dict) » → « valeur is None » retirée, équivalente (une trace de document
 # vaut toujours un dictionnaire ou rien).
 # Lot 14 : « actifs == "1" » → « actifs != "0" » retirée, équivalente (la valeur est déjà limitée à 0 ou 1).
