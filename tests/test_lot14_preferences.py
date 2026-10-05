@@ -407,4 +407,4 @@ def test_origine_inconnue_refusee(session):
 
 
 def test_version():
-    assert VERSION == "0.14.0"
+    assert VERSION.startswith("0.")

@@ -212,3 +212,31 @@ a.esp-chiffre:hover { border-color: var(--esp-bleu-vif); }
 .esp-changement { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 2px; }
 .esp-avant { color: var(--esp-doux); text-decoration: line-through; }
 .esp-historique { max-width: 760px; }
+
+/* --- Lot 15 : Documents --------------------------------------------------- */
+.esp-depot { display: flex; flex-direction: column; gap: 10px; }
+.esp-depot-tete { display: flex; align-items: center; gap: 12px; margin-bottom: 4px; }
+.esp-depot .form-label, .esp-classement .form-label { font-weight: 600; font-size: 14px; margin-bottom: 0; display: flex; flex-direction: column; gap: 4px; }
+.esp-classement { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.esp-espace { margin: 12px 2px; }
+.esp-jauge { display: block; height: 6px; border-radius: 3px; background: var(--esp-gris-pale); margin-top: 6px; overflow: hidden; }
+.esp-jauge span { display: block; height: 100%; background: var(--esp-bleu-vif); }
+.esp-puces-filtre { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; margin: 16px 0 0; }
+.esp-puces-filtre a { white-space: nowrap; border-radius: 20px; padding: 6px 12px; font-size: 13px; font-weight: 700; background: var(--esp-gris-pale); color: var(--esp-doux); text-decoration: none; }
+.esp-puces-filtre a.actif { background: var(--esp-bleu-pale); color: var(--esp-bleu); }
+.esp-document { padding: 4px 0 12px; border-top: 1px solid var(--esp-gris-pale); }
+.esp-document:first-child { border-top: none; }
+.esp-document .esp-ligne { border-top: none; }
+.esp-nom-document { overflow-wrap: anywhere; }
+.esp-actions { display: flex; flex-wrap: wrap; gap: 6px; padding-left: 48px; }
+.esp-repli { width: auto; }
+.esp-repli[open] { width: 100%; }
+.esp-repli summary { list-style: none; }
+.esp-repli summary::-webkit-details-marker { display: none; }
+.esp-repli-corps { margin-top: 10px; display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
+.esp-repli-corps .esp-classement { width: 100%; }
+.esp-bouton-danger { background: transparent; color: var(--esp-erreur); border: 1px solid var(--esp-bordure); font-weight: 600; }
+.esp-bouton-danger-plein { background: #b42318; color: #fff; font-weight: 700; border: none; }
+.esp-bouton-danger-plein:hover { background: #912018; color: #fff; }
+@media (max-width: 420px) { .esp-classement { grid-template-columns: 1fr; } .esp-actions { padding-left: 0; } }
+.esp-depot .esp-classement { grid-template-columns: 1fr; }

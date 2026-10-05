@@ -7,7 +7,7 @@ from functools import lru_cache
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-VERSION = "0.14.0"
+VERSION = "0.15.0"
 
 
 class Settings(BaseSettings):
@@ -20,6 +20,8 @@ class Settings(BaseSettings):
     essai_actif: bool = False
     # Coffre fiscal du client (lot 12) : coupé par défaut, à activer explicitement dans le .env.
     espace_actif: bool = False
+    # Lot 15 : dossier des documents déposés (volume Docker jeff_documents en production).
+    documents_dossier: str = "uploads/documents"
     # Pays de ce déploiement : une entreprise relève d'une seule juridiction.
     juridiction: str = "CM"
     # Envoi des emails par SMTP (lot 8, fournisseur Brevo). Les identifiants ne sont que dans le .env.

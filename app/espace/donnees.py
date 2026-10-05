@@ -345,7 +345,7 @@ def libelle_du_champ(champ: str) -> str:
 
     if champ in onboarding.PAR_CLE:
         return onboarding.PAR_CLE[champ].libelle
-    return tx.CHAMPS_PREFERENCES.get(champ, champ)
+    return {**tx.CHAMPS_PREFERENCES, **tx.CHAMPS_DOCUMENTS}.get(champ, champ)
 
 
 def valeur_historique(champ: str, valeur) -> str:
@@ -354,6 +354,14 @@ def valeur_historique(champ: str, valeur) -> str:
 
     if champ in tx.CHAMPS_PREFERENCES:
         return tx.ACTIFS if valeur else tx.ARRETES
+    if champ in tx.CHAMPS_DOCUMENTS:
+        if not isinstance(valeur, dict):
+            return tx.AUCUN
+        annee, mois = (int(x) for x in valeur["mois"].split("-"))
+        return tx.DOCUMENT_DECRIT.format(
+            nom=valeur["nom"], type=dict(tx.TYPES_DOCUMENT).get(valeur["type"], valeur["type"]),
+            mois=libelle_mois(date(annee, mois, 1)),
+        )
     if champ == "assujetti_tva_declare":
         valeur = "inconnu" if valeur is None else ("oui" if valeur else "non")
     return valeur_affichee(champ, valeur)
@@ -408,3 +416,112 @@ def historique(session: Session, entreprise: Entreprise) -> list[Changement]:
             origine=origine_du_changement(m, canaux),
         ))
     return changements
+
+
+# --- Documents (lot 15) ---------------------------------------------------------------------------
+
+MOIS_EN_ARRIERE = 24  # Un document peut être classé jusqu'à deux ans en arrière.
+
+
+@dataclass
+class LigneDocument:
+    id: str
+    nom: str
+    type_document: str
+    type_libelle: str
+    format: str
+    taille: str
+    depose: str
+    mois_cle: str
+
+
+@dataclass
+class GroupeDeMois:
+    cle: str
+    libelle: str
+    documents: list[LigneDocument]
+
+
+@dataclass
+class Documents:
+    groupes: list[GroupeDeMois]
+    compteurs: dict[str, int]
+    total: int
+    utilise: str
+    quota: str
+    pourcentage: int
+    filtre: str
+    mois_choisissables: list[tuple[str, str]]
+    mois_defaut: str
+
+
+def taille_lisible(octets: int) -> str:
+    if octets < 1024 * 1024:
+        return f"{max(1, -(-octets // 1024))} Ko"
+    return f"{octets / (1024 * 1024):.1f} Mo".replace(".", ",")
+
+
+def libelle_mois(jour: date) -> str:
+    return f"{MOIS[jour.month - 1]} {jour.year}"
+
+
+def mois_choisissables(jour: date) -> list[tuple[str, str]]:
+    """Du mois en cours à 24 mois en arrière, le plus récent d'abord."""
+    from app.calendrier.dates import mois_precedent
+
+    annee, mois, liste = jour.year, jour.month, []
+    for _ in range(MOIS_EN_ARRIERE + 1):
+        liste.append((cle_mois(annee, mois), libelle_mois(date(annee, mois, 1))))
+        annee, mois = mois_precedent(annee, mois)
+    return liste
+
+
+def lire_mois(cle: str, jour: date) -> date | None:
+    if cle not in {c for c, _ in mois_choisissables(jour)}:
+        return None
+    annee, mois = cle.split("-")
+    return date(int(annee), int(mois), 1)
+
+
+def documents(session: Session, entreprise: Entreprise, filtre: str = "", jour: date | None = None) -> Documents:
+    from app.documents.models import TYPES, Document
+    from app.documents.stockage import QUOTA, utilise
+    from app.espace import textes as tx
+
+    jour = jour or ce_jour(session, entreprise)
+    fuseau = session.get(Juridiction, entreprise.juridiction_code).fuseau_horaire
+    tous = list(session.scalars(
+        select(Document).where(Document.entreprise_id == entreprise.id)
+        .order_by(Document.mois.desc(), Document.depose_le.desc(), Document.nom)
+    ))
+    compteurs = {t: sum(1 for d in tous if d.type_document == t) for t in TYPES}
+    filtre = filtre if filtre in TYPES else ""
+    groupes: list[GroupeDeMois] = []
+    for d in tous:
+        if filtre and d.type_document != filtre:
+            continue
+        cle = d.mois.strftime("%Y-%m")
+        if not groupes or groupes[-1].cle != cle:
+            groupes.append(GroupeDeMois(cle, libelle_mois(d.mois), []))
+        groupes[-1].documents.append(LigneDocument(
+            id=str(d.id),
+            nom=d.nom,
+            type_document=d.type_document,
+            type_libelle=dict(tx.TYPES_DOCUMENT)[d.type_document],
+            format=d.format,
+            taille=taille_lisible(d.taille),
+            depose=quand(d.depose_le, fuseau),
+            mois_cle=cle,
+        ))
+    octets = utilise(session, entreprise.id)
+    return Documents(
+        groupes=groupes,
+        compteurs=compteurs,
+        total=len(tous),
+        utilise=taille_lisible(octets) if octets else "0 Mo",
+        quota=taille_lisible(QUOTA),
+        pourcentage=min(100, round(100 * octets / QUOTA)),
+        filtre=filtre,
+        mois_choisissables=mois_choisissables(jour),
+        mois_defaut=cle_mois(jour.year, jour.month),
+    )

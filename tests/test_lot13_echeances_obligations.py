@@ -499,15 +499,6 @@ def test_accueil_relie_aux_onglets(espace, session, regles):
     assert tx.VOIR_DETAIL in texte_visible(html)
 
 
-def test_onglet_documents_toujours_bientot(espace, session):
-    adresse = adresse_unique()
-    creer(session, "Ets Bientôt", adresse)
-    client = connecter(session, adresse)
-    assert tx.BIENTOT_TITRE in texte_visible(client.get("/espace/documents").text)
-    assert tx.BIENTOT_TITRE not in texte_visible(client.get("/espace/echeances").text)
-    assert set(tx.BIENTOT) == {"documents"}
-
-
 def test_styles_du_lot():
     css = (RACINE / "app/static/css/espace.css").read_text()
     for classe in (".esp-mois", ".esp-filtres", ".esp-fiche-obligation", ".esp-etiquette-orange", ".esp-etiquette-sous"):

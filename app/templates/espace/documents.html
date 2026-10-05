@@ -1,0 +1,87 @@
+{% extends "espace/base.html" %}
+{% from "espace/icones.html" import icone %}
+{% block titre %}Documents{% endblock %}
+{% macro choix_classement(type_actuel, mois_actuel) %}
+<div class="esp-classement">
+  <label class="form-label">{{ tx.TYPE_DE_DOCUMENT }}
+    <select name="type_document" class="form-select">
+      {% for cle, libelle in tx.TYPES_DOCUMENT %}<option value="{{ cle }}"{% if cle == type_actuel %} selected{% endif %}>{{ libelle }}</option>{% endfor %}
+    </select>
+  </label>
+  <label class="form-label">{{ tx.MOIS_CONCERNE }}
+    <select name="mois" class="form-select">
+      {% for cle, libelle in documents.mois_choisissables %}<option value="{{ cle }}"{% if cle == mois_actuel %} selected{% endif %}>{{ libelle }}</option>{% endfor %}
+    </select>
+  </label>
+</div>
+{% endmacro %}
+{% block contenu %}
+<h1 class="esp-titre">Documents</h1>
+{% if info %}<div class="esp-message esp-message-info" role="status">{{ icone("coche", 18) }}{{ info }}</div>{% endif %}
+{% if erreur %}<div class="esp-message esp-message-erreur" role="alert">{{ erreur }}</div>{% endif %}
+
+<div class="esp-grille">
+  <div>
+    <form method="post" action="{{ url_for('espace_deposer') }}" enctype="multipart/form-data" class="esp-carte esp-depot">
+      <div class="esp-depot-tete">
+        <span class="esp-puce esp-puce-bleue">{{ icone("depot", 22) }}</span>
+        <span><span class="esp-ligne-titre d-block">{{ tx.DEPOSER_TITRE }}</span><span class="esp-ligne-sous">{{ tx.DEPOSER_AIDE }}</span></span>
+      </div>
+      <label class="form-label" for="fichier">{{ tx.FICHIER }}</label>
+      <input id="fichier" name="fichier" type="file" class="form-control" accept="application/pdf,image/jpeg,image/png,.pdf,.jpg,.jpeg,.png" required>
+      {{ choix_classement("autre", documents.mois_defaut) }}
+      <button type="submit" class="btn btn-lg esp-bouton w-100">{{ tx.DEPOSER }}</button>
+    </form>
+    <p class="esp-note esp-espace">{{ tx.ESPACE_UTILISE.format(utilise=documents.utilise, quota=documents.quota) }}
+      <span class="esp-jauge" role="progressbar" aria-valuenow="{{ documents.pourcentage }}" aria-valuemin="0" aria-valuemax="100"><span style="width: {{ documents.pourcentage }}%"></span></span>
+    </p>
+  </div>
+
+  <div>
+    <nav class="esp-puces-filtre" aria-label="Types de documents">
+      <a href="{{ url_for('espace_documents') }}" class="{% if not documents.filtre %}actif{% endif %}"{% if not documents.filtre %} aria-current="true"{% endif %}>{{ tx.TOUS_LES_DOCUMENTS }} {{ documents.total }}</a>
+      {% for cle, libelle in tx.TYPES_DOCUMENT %}
+      <a href="{{ url_for('espace_documents').include_query_params(type=cle) }}" class="{% if documents.filtre == cle %}actif{% endif %}"{% if documents.filtre == cle %} aria-current="true"{% endif %}>{{ libelle }} {{ documents.compteurs[cle] }}</a>
+      {% endfor %}
+    </nav>
+
+    {% for groupe in documents.groupes %}
+    <h2 class="esp-section">{{ groupe.libelle }}</h2>
+    <section class="esp-carte">
+      {% for d in groupe.documents %}
+      <div class="esp-document" id="document-{{ d.id }}">
+        <div class="esp-ligne">
+          <span class="esp-puce {{ 'esp-puce-orange' if d.format == 'pdf' else 'esp-puce-bleue' }}">{{ icone("documents" if d.format == "pdf" else "image", 18) }}</span>
+          <span class="esp-ligne-texte">
+            <a class="esp-ligne-titre esp-lien-titre esp-nom-document" href="{{ url_for('espace_fichier', identifiant=d.id) }}" target="_blank" rel="noopener">{{ d.nom }}</a>
+            <span class="esp-ligne-sous">{{ d.type_libelle }} · {{ d.format | upper }} · {{ d.taille }}</span>
+            <span class="esp-ligne-sous">{{ tx.DEPOSE_LE.format(quand=d.depose) }}</span>
+          </span>
+        </div>
+        <div class="esp-actions">
+          <a class="btn btn-sm esp-bouton-secondaire" href="{{ url_for('espace_fichier', identifiant=d.id) }}" target="_blank" rel="noopener">{{ tx.OUVRIR }}</a>
+          <a class="btn btn-sm esp-bouton-secondaire" href="{{ url_for('espace_fichier', identifiant=d.id).include_query_params(telecharger=1) }}">{{ tx.TELECHARGER }}</a>
+          <details class="esp-repli">
+            <summary class="btn btn-sm esp-bouton-secondaire">{{ tx.CLASSER }}</summary>
+            <form method="post" action="{{ url_for('espace_reclasser', identifiant=d.id) }}" class="esp-repli-corps">
+              {{ choix_classement(d.type_document, d.mois_cle) }}
+              <button type="submit" class="btn btn-sm esp-bouton">{{ tx.ENREGISTRER }}</button>
+            </form>
+          </details>
+          <details class="esp-repli">
+            <summary class="btn btn-sm esp-bouton-danger">{{ tx.SUPPRIMER }}</summary>
+            <form method="post" action="{{ url_for('espace_supprimer', identifiant=d.id) }}" class="esp-repli-corps">
+              <p class="esp-note">{{ tx.SUPPRIMER_CONFIRMATION }}</p>
+              <button type="submit" class="btn btn-sm esp-bouton-danger-plein">{{ tx.SUPPRIMER_CONFIRMER }}</button>
+            </form>
+          </details>
+        </div>
+      </div>
+      {% endfor %}
+    </section>
+    {% else %}
+    <section class="esp-carte mt-3"><p class="mb-0">{{ tx.AUCUN_DOCUMENT_TYPE if documents.filtre else tx.AUCUN_DOCUMENT }}</p></section>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

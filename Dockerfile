@@ -10,7 +10,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-RUN useradd --create-home jeff
+RUN useradd --create-home jeff \
+    && mkdir -p /data/documents \
+    && chown jeff:jeff /data/documents
 USER jeff
 
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

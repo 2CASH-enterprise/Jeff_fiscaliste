@@ -7,8 +7,8 @@ session est toujours confirmée pour l'entreprise affichée.
 import uuid
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, Form, HTTPException, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
@@ -22,7 +22,6 @@ COOKIE_DEMANDE = "jeff_connexion"
 COOKIE_SESSION = "jeff_espace"
 DUREE_COOKIE_DEMANDE = 3600
 DUREE_COOKIE_SESSION = int(connexion.DUREE_SESSION.total_seconds())
-BIENTOT = ("documents",)
 
 MESSAGES_CODE = {
     connexion.FORMAT: tx.CODE_FORMAT,
@@ -295,18 +294,122 @@ def obligations(request: Request, filtre: str = "", session: Session = Depends(s
     return page(request, "obligations.html", contexte)
 
 
-def bientot(onglet: str):
-    def vue(request: Request, session: Session = Depends(session_requete)):
-        contexte, redirection = contexte_espace(request, session, onglet)
-        if redirection:
-            return redirection
-        contexte["texte"] = tx.BIENTOT[onglet]
-        return page(request, "bientot.html", contexte)
+# --- Documents (lot 15) -------------------------------------------------------------------------
 
-    return vue
+def document_de(session: Session, entreprise, identifiant: str):
+    """Le document, seulement s'il appartient à l'entreprise affichée."""
+    from app.documents.models import Document
+
+    try:
+        document = session.get(Document, uuid.UUID(identifiant))
+    except ValueError:
+        return None
+    if document is None or document.entreprise_id != entreprise.id:
+        return None
+    return document
 
 
-for _onglet in BIENTOT:
-    router.add_api_route(
-        f"/{_onglet}", bientot(_onglet), methods=["GET"], response_class=HTMLResponse, name=f"espace_{_onglet}"
+@router.get("/documents", response_class=HTMLResponse, name="espace_documents")
+def documents(request: Request, type: str = "", info: str = "", session: Session = Depends(session_requete)):
+    contexte, redirection = contexte_espace(request, session, "documents")
+    if redirection:
+        return redirection
+    contexte["documents"] = donnees.documents(session, contexte["entreprise"], type)
+    contexte["info"] = {"depose": tx.DOCUMENT_DEPOSE, "classe": tx.DOCUMENT_RECLASSE, "supprime": tx.DOCUMENT_SUPPRIME}.get(info)
+    contexte["erreur"] = tx.REFUS_DOCUMENT.get(info)
+    return page(request, "documents.html", contexte)
+
+
+@router.post("/documents", name="espace_deposer")
+def deposer(
+    request: Request,
+    fichier: UploadFile | None = File(None),
+    type_document: str = Form(""),
+    mois: str = Form(""),
+    session: Session = Depends(session_requete),
+):
+    from app.documents import stockage
+
+    ouverte = session_du_navigateur(request, session)
+    contexte, redirection = contexte_espace(request, session, "documents")
+    if redirection:
+        return redirection
+    entreprise = contexte["entreprise"]
+    jour = donnees.ce_jour(session, entreprise)
+    mois_choisi = donnees.lire_mois(mois, jour)
+    if type_document not in dict(tx.TYPES_DOCUMENT) or mois_choisi is None:
+        return aller(request, "espace_documents", info="impossible")
+    if fichier is None:
+        return aller(request, "espace_documents", info=stockage.VIDE)
+    try:
+        stockage.deposer(session, entreprise, fichier.file, fichier.filename, type_document, mois_choisi, ouverte.id)
+    except stockage.DepotRefuse as refus:
+        return aller(request, "espace_documents", info=refus.raison)
+    session.commit()
+    return aller(request, "espace_documents", info="depose")
+
+
+@router.get("/documents/{identifiant}/fichier", name="espace_fichier")
+def fichier(request: Request, identifiant: str, telecharger: str = "", session: Session = Depends(session_requete)):
+    from app.documents import stockage
+
+    contexte, redirection = contexte_espace(request, session, "documents")
+    if redirection:
+        return redirection
+    document = document_de(session, contexte["entreprise"], identifiant)
+    if document is None or not stockage.chemin(document).is_file():
+        raise HTTPException(status_code=404)
+    return FileResponse(
+        stockage.chemin(document),
+        media_type=stockage.TYPES_MIME[document.format],
+        filename=document.nom,
+        content_disposition_type="attachment" if telecharger else "inline",
+        headers=entetes_fichier(document.format),
     )
+
+
+def entetes_fichier(format_: str) -> dict:
+    """Jamais interprété autrement que son type ; une image ne peut rien charger ni exécuter."""
+    entetes = {"X-Content-Type-Options": "nosniff", "Cache-Control": "private, no-store"}
+    if format_ != "pdf":
+        entetes["Content-Security-Policy"] = "default-src 'none'; img-src 'self'; style-src 'unsafe-inline'"
+    return entetes
+
+
+@router.post("/documents/{identifiant}/classement", name="espace_reclasser")
+def reclasser(
+    request: Request,
+    identifiant: str,
+    type_document: str = Form(""),
+    mois: str = Form(""),
+    session: Session = Depends(session_requete),
+):
+    from app.documents import stockage
+
+    ouverte = session_du_navigateur(request, session)
+    contexte, redirection = contexte_espace(request, session, "documents")
+    if redirection:
+        return redirection
+    document = document_de(session, contexte["entreprise"], identifiant)
+    mois_choisi = donnees.lire_mois(mois, donnees.ce_jour(session, contexte["entreprise"]))
+    if document is None or type_document not in dict(tx.TYPES_DOCUMENT) or mois_choisi is None:
+        return aller(request, "espace_documents", info="impossible")
+    stockage.reclasser(session, document, type_document, mois_choisi, ouverte.id)
+    session.commit()
+    return aller(request, "espace_documents", info="classe")
+
+
+@router.post("/documents/{identifiant}/supprimer", name="espace_supprimer")
+def supprimer(request: Request, identifiant: str, session: Session = Depends(session_requete)):
+    from app.documents import stockage
+
+    ouverte = session_du_navigateur(request, session)
+    contexte, redirection = contexte_espace(request, session, "documents")
+    if redirection:
+        return redirection
+    document = document_de(session, contexte["entreprise"], identifiant)
+    if document is None:
+        return aller(request, "espace_documents", info="impossible")
+    stockage.supprimer(session, document, ouverte.id)
+    session.commit()
+    return aller(request, "espace_documents", info="supprime")

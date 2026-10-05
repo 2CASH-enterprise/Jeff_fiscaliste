@@ -61,10 +61,6 @@ AVERTISSEMENT_VALIDATION = (
     "Certaines règles sont en attente de validation par un fiscaliste. En cas de doute, demandez à Jeff."
 )
 
-BIENTOT_TITRE = "Bientôt disponible"
-BIENTOT = {
-    "documents": "Vous pourrez bientôt déposer ici vos factures, bulletins de paie et déclarations, en photo ou en PDF.",
-}
 
 PROFIL = "Profil"
 NIU_VERROUILLE = "non modifiable"
@@ -141,6 +137,47 @@ ORIGINE_INCONNUE = "Conversation avec Jeff"
 LIBELLE_RAPPELS_NUMERO = "Rappels WhatsApp ({numero})"
 CHAMPS_PREFERENCES = {"rappels_whatsapp": "Rappels WhatsApp", "rappels_email": "Rappels par email"}
 
+# --- Lot 15 : Documents ------------------------------------------------------------------------
+
+TYPES_DOCUMENT = (
+    ("facture", "Factures"), ("paie", "Bulletins de paie"), ("declaration", "Déclarations"),
+    ("attestation", "Attestations"), ("autre", "Autres"),
+)
+TOUS_LES_DOCUMENTS = "Tous"
+DEPOSER_TITRE = "Déposer un document"
+DEPOSER_AIDE = "Photo ou PDF : JPEG, PNG ou PDF, 10 Mo au plus."
+FICHIER = "Fichier"
+TYPE_DE_DOCUMENT = "Type de document"
+MOIS_CONCERNE = "Mois concerné"
+DEPOSER = "Déposer"
+ESPACE_UTILISE = "{utilise} utilisés sur {quota}"
+AUCUN_DOCUMENT = "Aucun document pour l'instant. Déposez votre premier document ci-dessus."
+AUCUN_DOCUMENT_TYPE = "Aucun document de ce type."
+DEPOSE_LE = "Déposé le {quand}"
+OUVRIR = "Ouvrir"
+TELECHARGER = "Télécharger"
+CLASSER = "Modifier le classement"
+ENREGISTRER = "Enregistrer"
+SUPPRIMER = "Supprimer"
+SUPPRIMER_CONFIRMATION = "Ce document sera effacé définitivement. Seul son nom restera dans l'historique."
+SUPPRIMER_CONFIRMER = "Oui, supprimer définitivement"
+DOCUMENT_DEPOSE = "Votre document est déposé."
+DOCUMENT_RECLASSE = "Le classement est enregistré."
+DOCUMENT_SUPPRIME = "Le document est supprimé."
+REFUS_DOCUMENT = {
+    "vide": "Aucun fichier reçu. Choisissez une photo ou un PDF, puis déposez-le.",
+    "format": "Ce fichier n'est ni un PDF, ni une photo JPEG ou PNG. Il n'a pas été déposé.",
+    "taille": "Ce fichier dépasse 10 Mo. Réduisez-le (photo moins lourde, PDF compressé) puis réessayez.",
+    "quota": "L'espace de 500 Mo de votre entreprise est plein. Supprimez des documents pour en déposer d'autres.",
+    "impossible": "Cette action n'a pas pu être enregistrée. Rechargez la page et réessayez.",
+}
+CHAMPS_DOCUMENTS = {
+    "document_depose": "Document déposé", "document_classement": "Classement d'un document",
+    "document_supprime": "Document supprimé",
+}
+DOCUMENT_DECRIT = "{nom} ({type}, {mois})"
+AUCUN = "—"
+
 EMAIL_CONNEXION_OBJET = "Votre code de connexion Jeff"
 EMAIL_CONNEXION_TEXTE = (
     "Bonjour,\n\nVoici votre code pour ouvrir votre coffre fiscal Jeff ({entreprises}) : {code}\n\n"
@@ -155,7 +192,7 @@ TOUS = (
     CHOIX_TITRE, CHOIX_INTRO, CHOIX_PIED, *(l for _, l in ONGLETS), *ONGLET_COURT.values(), DECONNEXION,
     CHANGER_ENTREPRISE, BONJOUR, PROCHAINE_ECHEANCE, PERIODE, A_FAIRE_AVANT, JOURS_RESTANTS, AUJOURD_HUI, DEMAIN,
     AUCUNE_ECHEANCE, A_VENIR, A_CONFIRMER, A_CONFIRMER_INTRO, A_CONFIRMER_AIDE, SANS_DATE, EN_CHIFFRES,
-    OBLIGATIONS_SUIVIES, OBLIGATIONS_A_CONFIRMER, AVERTISSEMENT_VALIDATION, BIENTOT_TITRE, *BIENTOT.values(),
+    OBLIGATIONS_SUIVIES, OBLIGATIONS_A_CONFIRMER, AVERTISSEMENT_VALIDATION,
     PROFIL, NIU_VERROUILLE, CONTACT, EMAIL, EMAIL_CONFIRMEE, WHATSAPP, WHATSAPP_RELIE, WHATSAPP_AUCUN, RAPPELS,
     RAPPELS_WHATSAPP, RAPPELS_EMAIL, ACTIFS, ARRETES, MODIFIER_AIDE, EMAIL_CONNEXION_OBJET, EMAIL_CONNEXION_TEXTE,
     MOIS_PRECEDENT, MOIS_SUIVANT, ECHEANCES_DATEES, AUCUNE_DATE_CE_MOIS, DATE_A_CONFIRMER, DATE_A_CONFIRMER_AIDE,
@@ -166,4 +203,8 @@ TOUS = (
     ARRETER, REACTIVER, ENREGISTRE, CHANGEMENT_IMPOSSIBLE, RAPPELS_AIDE, HISTORIQUE, HISTORIQUE_VIDE,
     HISTORIQUE_LIMITE, ORIGINE_COFFRE, ORIGINE_WHATSAPP, ORIGINE_CONVERSATION, ORIGINE_INCONNUE, LIBELLE_RAPPELS_NUMERO,
     *CHAMPS_PREFERENCES.values(),
+    *(l for _, l in TYPES_DOCUMENT), TOUS_LES_DOCUMENTS, DEPOSER_TITRE, DEPOSER_AIDE, FICHIER, TYPE_DE_DOCUMENT,
+    MOIS_CONCERNE, DEPOSER, ESPACE_UTILISE, AUCUN_DOCUMENT, AUCUN_DOCUMENT_TYPE, DEPOSE_LE, OUVRIR, TELECHARGER,
+    CLASSER, ENREGISTRER, SUPPRIMER, SUPPRIMER_CONFIRMATION, SUPPRIMER_CONFIRMER, DOCUMENT_DEPOSE, DOCUMENT_RECLASSE,
+    DOCUMENT_SUPPRIME, *REFUS_DOCUMENT.values(), *CHAMPS_DOCUMENTS.values(), DOCUMENT_DECRIT,
 )

@@ -634,14 +634,6 @@ def test_navigation_cinq_onglets(espace, session):
     assert "<span>Entreprise</span>" in client.get("/espace/accueil").text
 
 
-@pytest.mark.parametrize("onglet", ["documents"])
-def test_onglets_bientot(espace, session, onglet):
-    adresse = adresse_unique()
-    creer(session, "Ets Chi", adresse)
-    texte = texte_visible(connecter(session, adresse).get(f"/espace/{onglet}").text)
-    assert tx.BIENTOT_TITRE in texte and tx.BIENTOT[onglet] in texte
-
-
 def test_accueil_prochaine_echeance(espace, session, regles):
     adresse = adresse_unique()
     creer(session, "Ets Psi", adresse, nombre_salaries=None)
