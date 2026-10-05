@@ -11,6 +11,7 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.conversation import confirmation
 from app.conversation import messages_fixes as mf
 from app.conversation.models import ABANDONNE, EN_COURS, EN_PAUSE, TERMINE, Conversation, Parcours
 from app.conversation.montants import (
@@ -117,6 +118,21 @@ def lire_cnps(texte: str, session: Session) -> str | None:
     return numero
 
 
+EMAIL_MAX = 254
+SANS_EMAIL = {"plus tard", "je la donnerai plus tard", "aucune", "aucun", "supprimer", "pas d email", "je n en ai pas"}
+
+
+def lire_email(texte: str, session: Session) -> str | None:
+    if normaliser(texte) in SANS_EMAIL:
+        return None
+    email = texte.strip().lower()
+    if len(email) > EMAIL_MAX or not re.fullmatch(r"[a-z0-9._%+\-]+@[a-z0-9\-]+(\.[a-z0-9\-]+)*\.[a-z]{2,}", email):
+        raise ReponseInvalide(mf.ERR_EMAIL)
+    if ".." in email:
+        raise ReponseInvalide(mf.ERR_EMAIL)
+    return email
+
+
 # --- Les questions ------------------------------------------------------------------------
 
 FORMES = (
@@ -179,6 +195,7 @@ ETAPES = (
         [("plus tard", "Je le donnerai plus tard")],
         condition=lambda donnees: (donnees.get("nombre_salaries") or 0) > 0,
     ),
+    Etape("email", "Adresse email", mf.Q_EMAIL, lire_email, list(mf.CHOIX_EMAIL)),
 )
 PAR_CLE = {etape.cle: etape for etape in ETAPES}
 
@@ -190,7 +207,7 @@ def libelle_option(options, code) -> str:
 
 
 def afficher(cle: str, valeur: Any) -> str:
-    if cle == "numero_employeur_cnps" and valeur is None:
+    if cle in ("numero_employeur_cnps", "email") and valeur is None:
         return mf.A_COMPLETER
     if cle == "chiffre_affaires_annuel":
         return formater_montant(valeur)
@@ -336,19 +353,26 @@ def finaliser(session: Session, conversation: Conversation, parcours: Parcours) 
     session.flush()
     conversation.entreprise_id = entreprise.id
     parcours.statut = TERMINE
-    return Reponse(mf.BIENVENUE.format(raison_sociale=entreprise.raison_sociale), list(mf.MENU))
+    bienvenue = mf.BIENVENUE.format(raison_sociale=entreprise.raison_sociale)
+    if entreprise.email:
+        session.flush()  # L'onboarding est clos avant d'ouvrir la confirmation (un seul parcours actif).
+        code = confirmation.demarrer(session, conversation, entreprise)
+        return Reponse(bienvenue + "\n\n" + code.texte, code.choix)
+    return Reponse(bienvenue, list(mf.MENU))
 
 
 # Champs du profil modifiables après la création (le NIU ne l'est pas).
 CHAMPS_MODIFIABLES = (
     "raison_sociale", "forme_juridique", "secteur", "chiffre_affaires_annuel", "centre_impots",
-    "regime_declare", "assujetti_tva_declare", "nombre_salaries",
+    "regime_declare", "assujetti_tva_declare", "nombre_salaries", "email",
 )
 
 
 def colonnes(donnees: dict) -> dict:
     """Réponses du questionnaire → valeurs des colonnes de l'entreprise (hors NIU et CNPS)."""
-    valeurs = {cle: donnees[cle] for cle in CHAMPS_MODIFIABLES}
+    valeurs = {cle: donnees[cle] for cle in CHAMPS_MODIFIABLES if cle != "email"}
+    # Un questionnaire commencé avant le lot 8 n'a pas posé la question de l'email.
+    valeurs["email"] = donnees.get("email")
     tva = donnees["assujetti_tva_declare"]
     valeurs["assujetti_tva_declare"] = None if tva == INCONNU else tva == "oui"
     return valeurs

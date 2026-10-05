@@ -7,14 +7,16 @@ manquée), seul le plus urgent est créé.
 """
 from datetime import date, timedelta
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
 from app.calendrier.dates import prochaine_echeance
 from app.calendrier.feries import jour_ferie
 from app.core.temps import aujourd_hui
+from app.emails import models as emails
+from app.emails.composition import email_rappel
 from app.entreprises.models import Entreprise
-from app.rappels.canal import choisir_canal
+from app.rappels.canal import EMAIL, choisir_canal
 from app.rappels.models import A_ENVOYER, IGNORE, Rappel
 from app.referentiel.models import Juridiction
 from app.regles.conditions import INCERTAIN
@@ -59,6 +61,11 @@ def preparer_entreprise(session: Session, entreprise: Entreprise, ce_jour: date)
         for ancien in existants:
             if ancien.statut == A_ENVOYER:
                 ancien.statut = IGNORE
+                session.execute(
+                    update(emails.Email)
+                    .where(emails.Email.rappel_id == ancien.id, emails.Email.statut == emails.A_ENVOYER)
+                    .values(statut=emails.ANNULE)
+                )
         rappel = Rappel(
             entreprise_id=entreprise.id,
             regle_id=regle.id,
@@ -71,6 +78,9 @@ def preparer_entreprise(session: Session, entreprise: Entreprise, ce_jour: date)
             statut=A_ENVOYER,
         )
         session.add(rappel)
+        if rappel.canal == EMAIL:
+            session.flush()
+            email_rappel(session, entreprise, rappel, regle, ce_jour)
         crees.append(rappel)
     session.flush()
     return crees

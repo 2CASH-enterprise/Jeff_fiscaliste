@@ -96,6 +96,7 @@ def test_voir_le_profil(session):
         "• Assujetti à la TVA : Oui",
         "• Nombre de salariés : 3",
         "• N° employeur CNPS : 123456789",
+        "• Adresse email : À compléter",
         "",
         mf.PROFIL_NIU,
     ])
@@ -146,9 +147,9 @@ def test_modifier_ouvre_le_choix_des_informations(session, texte):
     assert reponse.texte == mf.MODIFICATION_QUELLE
     assert [libelle for _, libelle in reponse.choix] == [
         "Raison sociale", "Forme juridique", "Secteur", "Chiffre d'affaires annuel", "Centre des impôts",
-        "Régime d'imposition", "Assujetti à la TVA", "Nombre de salariés", "N° employeur CNPS",
+        "Régime d'imposition", "Assujetti à la TVA", "Nombre de salariés", "N° employeur CNPS", "Adresse email",
     ]
-    assert [valeur for valeur, _ in reponse.choix] == [str(n) for n in range(1, 10)]
+    assert [valeur for valeur, _ in reponse.choix] == [str(n) for n in range(1, 11)]
     assert modification(visiteur).etape == "correction"
 
 
@@ -287,10 +288,10 @@ def test_pause_puis_reprise_de_la_modification(session):
 def test_reponses_invalides_pendant_la_modification(session):
     visiteur = client_avec_profil(session)
     visiteur.dit("modifier")
-    assert visiteur.dit("10").texte == mf.ERR_CHOIX
+    assert visiteur.dit("11").texte == mf.ERR_CHOIX
     erreur = visiteur.dit("0")
     assert erreur.texte == mf.ERR_CHOIX
-    assert len(erreur.choix) == 9
+    assert len(erreur.choix) == 10
     visiteur.dit(CA)
     assert visiteur.dit("beaucoup").texte == mf.ERR_MONTANT
     visiteur.dit("180 millions")
@@ -316,7 +317,7 @@ def test_le_niu_n_est_jamais_propose(session):
 def test_salaries_de_zero_a_trois_demande_la_cnps(session):
     visiteur = client_avec_profil(session, salaries="0")
     choix = visiteur.dit("modifier").choix
-    assert len(choix) == 8
+    assert len(choix) == 9
     visiteur.dit(SALARIES)
     assert visiteur.dit("3").texte == mf.Q_CNPS
     recap = visiteur.dit("CN-445566")
@@ -436,7 +437,7 @@ def test_parcours_complet_dans_la_bulle(essai):
     client = TestClient(app)
     client.get("/essai")
     niu = niu_unique()
-    for texte in ["1", "oui", "Ets Bulle", niu, "1", "1", "20 millions", "CDI Douala", "1", "2", "0"]:
+    for texte in ["1", "oui", "Ets Bulle", niu, "1", "1", "20 millions", "CDI Douala", "1", "2", "0", "plus tard"]:
         assert client.post("/essai/messages", json={"texte": texte}).status_code == 200, texte
     assert client.post("/essai/messages", json={"texte": "oui"}).json()["reponse"].startswith("C'est enregistré")
     profil_json = client.post("/essai/messages", json={"texte": "5"}).json()

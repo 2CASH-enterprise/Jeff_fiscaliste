@@ -28,7 +28,7 @@ TOUS = (ACCUEIL, BIENTOT, INCOMPRIS, TROP_LONG, *(libelle for _, libelle in MENU
 
 PROPOSITION_ONBOARDING = (
     "Pour cela, j'ai d'abord besoin de connaître votre entreprise : "
-    "9 questions, environ 3 minutes. On commence ?"
+    "une dizaine de questions, environ 3 minutes. On commence ?"
 )
 CHOIX_PROPOSITION = (("oui", "Oui, commençons"), ("plus tard", "Plus tard"))
 PLUS_TARD = "Très bien. Vous pourrez commencer quand vous le souhaitez depuis le menu."
@@ -156,3 +156,60 @@ TOUS = TOUS + (
 RAPPEL = "Rappel : « {titre} » — {periode}."
 
 TOUS = TOUS + (RAPPEL,)
+
+
+# --- Adresse email (lot 8) ------------------------------------------------------------------
+
+Q_EMAIL = (
+    "Quelle est votre adresse email ? Elle sert à vous envoyer vos rappels d'échéances. "
+    "Vous pouvez aussi répondre « plus tard »."
+)
+ERR_EMAIL = "Cette adresse email ne semble pas valide. Vérifiez-la, par exemple nom@entreprise.cm, ou répondez « plus tard »."
+EMAIL_A_CONFIRMER = "à confirmer"
+CHOIX_EMAIL = (("plus tard", "Je la donnerai plus tard"),)
+
+CODE_ENVOYE = (
+    "Je vous envoie un code à 6 chiffres à {email}. Recopiez-le ici pour confirmer votre adresse : "
+    "vos rappels partiront ensuite par email. Le code est valable 15 minutes."
+)
+CODE_RENVOYE = "Je vous ai envoyé un nouveau code à {email}. Recopiez-le ici."
+CODE_FORMAT = (
+    "Le code contient 6 chiffres. Recopiez-le, tapez « renvoyer » pour en recevoir un nouveau, "
+    "ou « menu » pour revenir aux choix."
+)
+CODE_ATTENDU = "Recopiez le code à 6 chiffres envoyé à {email}, ou tapez « renvoyer » pour en recevoir un nouveau."
+CODE_FAUX = "Ce code ne correspond pas. Vérifiez-le et réessayez, ou tapez « renvoyer »."
+CODE_EXPIRE = "Ce code a expiré. Tapez « renvoyer » pour en recevoir un nouveau."
+CODE_TROP_D_ESSAIS = (
+    "Trop d'essais. Votre adresse n'est pas confirmée : vos rappels restent dans cette conversation. "
+    "Vous pourrez recommencer depuis « Mon entreprise »."
+)
+CODE_TROP_DE_RENVOIS = "Vous avez déjà demandé plusieurs codes. Utilisez le dernier reçu, ou réessayez plus tard depuis « Mon entreprise »."
+EMAIL_CONFIRME = "Votre adresse {email} est confirmée. Vos prochains rappels partiront par email."
+CONFIRMATION_ANNULEE = "La confirmation est annulée. Vos rappels restent dans cette conversation."
+CHOIX_CODE = (("renvoyer", "Renvoyer le code"),)
+CHOIX_CONFIRMER = ("confirmer", "Confirmer mon email")
+
+EMAIL_SIGNATURE = "Jeff, votre assistant fiscal."
+EMAIL_DESABONNEMENT = (
+    "Pour ne plus recevoir ces rappels par email, écrivez à Jeff : « 5 » (Mon entreprise), "
+    "« Modifier mon profil », puis l'adresse email, et répondez « supprimer »."
+)
+EMAIL_CODE_OBJET = "Votre code de confirmation Jeff"
+EMAIL_CODE_TEXTE = (
+    "Bonjour,\n\nVotre code de confirmation Jeff est : {code}\n\n"
+    "Il est valable 15 minutes. Recopiez-le dans votre conversation avec Jeff.\n"
+    "Si vous n'êtes pas à l'origine de cette demande, ignorez simplement cet email."
+)
+EMAIL_RAPPEL_OBJET = "Rappel Jeff : {titre}, au plus tard le {date}"
+EMAIL_RAPPEL_INTRO = "Bonjour,\n\nVoici un rappel pour « {raison_sociale} » :"
+EMAIL_TEST_OBJET = "Jeff : email de test"
+EMAIL_TEST_TEXTE = "Bonjour,\n\nCet email de test confirme que Jeff peut envoyer des emails depuis le serveur."
+
+TOUS = TOUS + (
+    Q_EMAIL, ERR_EMAIL, EMAIL_A_CONFIRMER, CODE_ENVOYE, CODE_RENVOYE, CODE_FORMAT, CODE_FAUX, CODE_EXPIRE,
+    CODE_TROP_D_ESSAIS, CODE_TROP_DE_RENVOIS, EMAIL_CONFIRME, CONFIRMATION_ANNULEE, EMAIL_SIGNATURE,
+    EMAIL_DESABONNEMENT, CODE_ATTENDU,
+    EMAIL_CODE_OBJET, EMAIL_CODE_TEXTE, EMAIL_RAPPEL_OBJET, EMAIL_RAPPEL_INTRO, EMAIL_TEST_OBJET, EMAIL_TEST_TEXTE,
+    *(libelle for _, libelle in CHOIX_EMAIL), *(libelle for _, libelle in CHOIX_CODE), CHOIX_CONFIRMER[1],
+)

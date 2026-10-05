@@ -7,7 +7,7 @@ from functools import lru_cache
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-VERSION = "0.7.0"
+VERSION = "0.8.0"
 
 
 class Settings(BaseSettings):
@@ -20,6 +20,18 @@ class Settings(BaseSettings):
     essai_actif: bool = False
     # Pays de ce déploiement : une entreprise relève d'une seule juridiction.
     juridiction: str = "CM"
+    # Envoi des emails par SMTP (lot 8, fournisseur Brevo). Les identifiants ne sont que dans le .env.
+    smtp_hote: str = ""
+    smtp_port: int = 587
+    smtp_utilisateur: str = ""
+    smtp_mot_de_passe: str = ""
+    email_expediteur: str = ""
+    email_nom_expediteur: str = "Jeff"
+
+    @property
+    def email_configure(self) -> bool:
+        valeurs = (self.smtp_hote, self.smtp_utilisateur, self.smtp_mot_de_passe, self.email_expediteur)
+        return all(v and v != "A_REMPLACER" and "VOTRE_DOMAINE" not in v for v in valeurs)
 
     @property
     def debug(self) -> bool:

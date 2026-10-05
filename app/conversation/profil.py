@@ -6,8 +6,8 @@ l'ancienne et la nouvelle valeur. Le NIU est affiché mais ne se modifie pas ici
 """
 from sqlalchemy.orm import Session
 
+from app.conversation import confirmation, onboarding
 from app.conversation import messages_fixes as mf
-from app.conversation import onboarding
 from app.conversation.models import TERMINE, Conversation, Parcours
 from app.conversation.normalisation import normaliser
 from app.conversation.onboarding import CORRECTION, CORRIGER, INCONNU, MODIFICATION, OUI, RECAPITULATIF, RETOUR_RECAP
@@ -35,18 +35,28 @@ def donnees_depuis_entreprise(entreprise: Entreprise) -> dict:
     }
     if onboarding.PAR_CLE[CNPS].condition(donnees):
         donnees[CNPS] = entreprise.numero_employeur_cnps
+    donnees["email"] = entreprise.email
     return donnees
+
+
+def email_a_confirmer(entreprise: Entreprise) -> bool:
+    return bool(entreprise.email) and entreprise.email_confirme_le is None
 
 
 def voir_profil(entreprise: Entreprise) -> Reponse:
     donnees = donnees_depuis_entreprise(entreprise)
+    lignes = onboarding.lignes_profil(donnees, niu_verrouille=True)
+    choix = list(mf.CHOIX_PROFIL)
+    if email_a_confirmer(entreprise):
+        lignes[-1] += f" ({mf.EMAIL_A_CONFIRMER})"
+        choix.insert(1, mf.CHOIX_CONFIRMER)
     texte = "\n".join([
         mf.PROFIL_INTRO.format(raison_sociale=entreprise.raison_sociale),
-        *onboarding.lignes_profil(donnees, niu_verrouille=True),
+        *lignes,
         "",
         mf.PROFIL_NIU,
     ])
-    return Reponse(texte, list(mf.CHOIX_PROFIL))
+    return Reponse(texte, choix)
 
 
 def demarrer(session: Session, conversation: Conversation, entreprise: Entreprise) -> Reponse:
@@ -105,7 +115,13 @@ def finaliser(session: Session, conversation: Conversation, parcours: Parcours) 
         ))
         setattr(entreprise, champ, nouvelle)
         changements += 1
+        if champ == "email":
+            # Une nouvelle adresse doit être confirmée avant de recevoir des rappels.
+            entreprise.email_confirme_le = None
     session.flush()
     if changements == 0:
         return Reponse(mf.PROFIL_INCHANGE, list(mf.MENU))
+    if email_a_confirmer(entreprise):
+        code = confirmation.demarrer(session, conversation, entreprise)
+        return Reponse(mf.PROFIL_A_JOUR + "\n\n" + code.texte, code.choix)
     return Reponse(mf.PROFIL_A_JOUR, list(mf.MENU))

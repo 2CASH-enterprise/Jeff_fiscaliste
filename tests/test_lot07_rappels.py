@@ -502,4 +502,4 @@ def test_contrainte_d_unicite(session, regles):
 
 
 def test_version():
-    assert VERSION == "0.7.0"
+    assert TestClient(app).get("/sante").json()["version"] == VERSION

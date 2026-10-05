@@ -145,13 +145,15 @@ REPONSES_TYPE = [
 ]
 
 
-def jusqu_au_recapitulatif(visiteur, niu, salaries="3", cnps="123-456-789"):
+def jusqu_au_recapitulatif(visiteur, niu, salaries="3", cnps="123-456-789", email="plus tard"):
     for texte, attendu in REPONSES_TYPE[:-1]:
         reponse = visiteur.dit(niu if texte is None else texte)
         assert reponse.texte == attendu
     reponse = visiteur.dit(salaries)
     if reponse.texte == mf.Q_CNPS:
         reponse = visiteur.dit(cnps)
+    assert reponse.texte == mf.Q_EMAIL  # Lot 8 : dernière question.
+    reponse = visiteur.dit(email)
     assert reponse.texte.startswith(mf.RECAP_INTRO)
     return reponse
 
@@ -231,6 +233,7 @@ def test_tva_declaree(session, reponse_tva, attendu):
         visiteur.dit(texte)
     visiteur.dit(reponse_tva)
     visiteur.dit("0")
+    visiteur.dit("plus tard")
     visiteur.dit("oui")
     entreprise = session.get(Entreprise, visiteur.conversation.entreprise_id)
     assert entreprise.assujetti_tva_declare is attendu
@@ -324,7 +327,8 @@ def test_reponses_invalides(session):
     assert visiteur.dit("!!").texte == mf.ERR_CNPS
     assert visiteur.dit("ab").texte == mf.ERR_CNPS
     assert visiteur.dit("12#45@78").texte == mf.ERR_CNPS
-    assert visiteur.dit("CNPS 55 66").texte.startswith(mf.RECAP_INTRO)
+    assert visiteur.dit("CNPS 55 66").texte == mf.Q_EMAIL
+    assert visiteur.dit("plus tard").texte.startswith(mf.RECAP_INTRO)
     assert visiteur.dit("peut-être").texte == mf.ERR_CHOIX
 
 
@@ -379,7 +383,7 @@ def test_corriger_une_reponse(session):
     jusqu_au_recapitulatif(visiteur, niu_unique())
     menu = visiteur.dit("Corriger")
     assert menu.texte == mf.CORRECTION
-    assert len(menu.choix) == 10
+    assert len(menu.choix) == 11
     assert menu.choix[0] == ("1", "Raison sociale")
     assert visiteur.dit("1").texte == mf.Q_RAISON_SOCIALE
     recap = visiteur.dit("Boulangerie Moderne")
@@ -393,7 +397,7 @@ def test_correction_choix_invalide(session):
     visiteur = Visiteur(session)
     jusqu_au_recapitulatif(visiteur, niu_unique())
     visiteur.dit("corriger")
-    assert visiteur.dit("11").texte == mf.ERR_CHOIX
+    assert visiteur.dit("12").texte == mf.ERR_CHOIX
     assert visiteur.dit("0").texte == mf.ERR_CHOIX
     assert visiteur.dit("10").texte == mf.Q_CNPS
 

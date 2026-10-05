@@ -7,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.conversation import messages_fixes as mf
-from app.conversation import echeances, obligations, onboarding, profil
+from app.conversation import confirmation, echeances, obligations, onboarding, profil
 from app.conversation.models import (
     ABANDONNE,
     EN_COURS,
@@ -32,6 +32,15 @@ CHOIX_OBLIGATIONS = "2"
 CHOIX_ECHEANCES = "3"
 CHOIX_PROFIL = "5"
 MODIFIER = {"modifier", "modifier mon profil"}
+CONFIRMER = {"confirmer", "confirmer mon email"}
+ANNULATIONS = {profil.TYPE: mf.MODIFICATION_ANNULEE, confirmation.TYPE: mf.CONFIRMATION_ANNULEE}
+
+
+def question(parcours) -> Reponse:
+    """Question en attente d'un parcours, pour le reprendre."""
+    if parcours.type == confirmation.TYPE:
+        return confirmation.question(parcours)
+    return onboarding.question(parcours)
 
 __all__ = ["LONGUEUR_MAX", "MessageVide", "Reponse", "historique", "normaliser", "repondre", "traiter_message"]
 
@@ -71,19 +80,25 @@ def decider(session: Session, conversation: Conversation, texte: str) -> Reponse
             return Reponse(mf.PAUSE, list(mf.MENU))
         if mots == "annuler":
             parcours.statut = ABANDONNE
-            annule = mf.MODIFICATION_ANNULEE if parcours.type == profil.TYPE else mf.ANNULE
+            annule = ANNULATIONS.get(parcours.type, mf.ANNULE)
             return Reponse(annule, list(mf.MENU))
         if parcours.type == profil.TYPE:
             return profil.avancer(session, conversation, parcours, texte)
+        if parcours.type == confirmation.TYPE:
+            return confirmation.avancer(session, conversation, parcours, texte)
         return onboarding.avancer(session, conversation, parcours, texte)
 
     sans_profil = conversation.entreprise_id is None
 
     if parcours is not None and parcours.statut == EN_PAUSE:
         reprise_modification = parcours.type == profil.TYPE and mots in MODIFIER
-        if mots == "reprendre" or reprise_modification or (sans_profil and mots in CHOIX_AVEC_PROFIL):
+        reprise_confirmation = parcours.type == confirmation.TYPE and mots in CONFIRMER
+        if (
+            mots == "reprendre" or reprise_modification or reprise_confirmation
+            or (sans_profil and mots in CHOIX_AVEC_PROFIL)
+        ):
             parcours.statut = EN_COURS
-            return onboarding.question(parcours)
+            return question(parcours)
 
     if sans_profil and mots in CHOIX_AVEC_PROFIL and parcours is None:
         return onboarding.demarrer(session, conversation)
@@ -101,6 +116,11 @@ def decider(session: Session, conversation: Conversation, texte: str) -> Reponse
 
     if not sans_profil and mots in MODIFIER and parcours is None:
         return profil.demarrer(session, conversation, session.get(Entreprise, conversation.entreprise_id))
+
+    if not sans_profil and mots in CONFIRMER and parcours is None:
+        entreprise = session.get(Entreprise, conversation.entreprise_id)
+        if profil.email_a_confirmer(entreprise):
+            return confirmation.demarrer(session, conversation, entreprise)
 
     return repondre(texte)
 

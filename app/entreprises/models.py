@@ -27,6 +27,9 @@ class Entreprise(Base):
     assujetti_tva_declare: Mapped[bool | None] = mapped_column(Boolean, default=None)
     nombre_salaries: Mapped[int | None] = mapped_column(Integer, default=None)
     numero_employeur_cnps: Mapped[str | None] = mapped_column(String(30), default=None)
+    # Adresse des rappels (lot 8) ; aucun email n'y part tant qu'elle n'est pas confirmée par code.
+    email: Mapped[str | None] = mapped_column(String(254), default=None)
+    email_confirme_le: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
     # Distributeur ou cabinet rattaché (phase P6) ; la table des distributeurs viendra plus tard.
     distributeur_id: Mapped[uuid.UUID | None] = mapped_column(default=None, index=True)
     cree_le: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
