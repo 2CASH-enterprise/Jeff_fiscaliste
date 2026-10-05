@@ -232,7 +232,7 @@ LIAISON_TROP_D_ESSAIS = "Trop d'essais : la liaison est annulée. Vous pourrez r
 EMAIL_LIAISON_OBJET = "Votre code Jeff pour relier une conversation"
 EMAIL_LIAISON_TEXTE = (
     "Bonjour,\n\nUne demande a été faite pour relier une nouvelle conversation (WhatsApp ou web) "
-    "à votre profil Jeff « {raison_sociale} ».\n\nVotre code : {code}\n\n"
+    "à votre profil Jeff ({entreprises}).\n\nVotre code : {code}\n\n"
     "Il est valable 15 minutes. Si vous n'êtes pas à l'origine de cette demande, ignorez cet email : "
     "rien ne sera relié sans ce code."
 )
@@ -261,3 +261,16 @@ MODELE_RAPPEL_TEXTE = (
 MODELE_RAPPEL_EXEMPLE = ("Ets BABA", "Déclaration et paiement mensuels de la TVA", "septembre 2026", "jeudi 15 octobre 2026")
 
 TOUS = TOUS + (MODELE_RAPPEL_TEXTE,)
+
+
+# --- Lot 11 : choix de l'entreprise à relier, arrêt des rappels WhatsApp ------------------------
+
+LIAISON_CHOIX = "Cette adresse est associée à plusieurs entreprises. Laquelle voulez-vous relier à cette conversation ?"
+WA_STOP = (
+    "C'est noté : je ne vous enverrai plus de rappels sur WhatsApp. Vous les recevrez par email si votre "
+    "adresse est confirmée, sinon au prochain message que vous m'écrirez. "
+    "Écrivez « reprendre les rappels » pour les réactiver."
+)
+WA_RAPPELS_REPRIS = "C'est noté : vos rappels d'échéances reviennent sur WhatsApp."
+
+TOUS = TOUS + (LIAISON_CHOIX, WA_STOP, WA_RAPPELS_REPRIS)

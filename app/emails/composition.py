@@ -71,6 +71,9 @@ def email_rappel(session: Session, entreprise, rappel, regle, ce_jour) -> Email:
     return deposer(session, RAPPEL, entreprise.email, objet, texte, entreprise.id, rappel.id)
 
 
-def email_liaison(session: Session, entreprise, code: str) -> Email:
-    texte = mf.EMAIL_LIAISON_TEXTE.format(raison_sociale=entreprise.raison_sociale, code=code) + "\n\n" + mf.EMAIL_SIGNATURE
-    return deposer(session, CODE, entreprise.email, mf.EMAIL_LIAISON_OBJET, texte, entreprise.id)
+def email_liaison(session: Session, entreprises: list, code: str) -> Email:
+    """Un seul email, même si l'adresse est confirmée pour plusieurs entreprises (lot 11)."""
+    noms = ", ".join(f"« {e.raison_sociale} »" for e in entreprises)
+    texte = mf.EMAIL_LIAISON_TEXTE.format(entreprises=noms, code=code) + "\n\n" + mf.EMAIL_SIGNATURE
+    premiere = entreprises[0]
+    return deposer(session, CODE, premiere.email, mf.EMAIL_LIAISON_OBJET, texte, premiere.id)

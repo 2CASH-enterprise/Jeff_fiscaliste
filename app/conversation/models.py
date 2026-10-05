@@ -2,7 +2,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import BigInteger, DateTime, ForeignKey, Index, String, Text, UniqueConstraint, func, text
+from sqlalchemy import BigInteger, Boolean, DateTime, ForeignKey, Index, String, Text, UniqueConstraint, func, text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -36,6 +36,8 @@ class Conversation(Base):
     )
     # Dernier message reçu du client (lot 9) : ouvre la fenêtre de 24 h de WhatsApp.
     dernier_message_client_le: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
+    # Lot 11 : « STOP » sur WhatsApp arrête les rappels envoyés à ce numéro.
+    rappels_whatsapp: Mapped[bool] = mapped_column(Boolean, default=True, server_default=text("true"))
     cree_le: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 

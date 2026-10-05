@@ -12,6 +12,7 @@ from app.conversation import messages_fixes as mf
 from app.conversation import confirmation, echeances, liaison, obligations, onboarding, profil
 from app.conversation.models import (
     ABANDONNE,
+    CANAL_WHATSAPP,
     EN_COURS,
     EN_PAUSE,
     ENTRANT,
@@ -26,7 +27,7 @@ from app.rappels.livraison import rappels_a_remettre
 
 LONGUEUR_MAX = 2000
 
-SALUTATIONS = {"bonjour", "bonsoir", "salut", "hello", "coucou", "bjr", "slt", "menu"}
+SALUTATIONS = {"bonjour", "bonsoir", "salut", "hello", "coucou", "bjr", "slt", "menu", "accueil", "retour"}
 
 # Choix du menu qui demandent de connaître l'entreprise.
 CHOIX_AVEC_PROFIL = {"1", "2", "3", "5"}
@@ -35,6 +36,15 @@ CHOIX_ECHEANCES = "3"
 CHOIX_PROFIL = "5"
 MODIFIER = {"modifier", "modifier mon profil"}
 CONFIRMER = {"confirmer", "confirmer mon email"}
+# Lot 11 : plusieurs façons de dire chaque commande (comparées après normalisation : sans accents ni majuscules).
+ANNULER = {
+    "annuler", "annule", "annulez", "annulation", "arreter", "arrete", "arretez", "abandonner", "abandon",
+    "quitter", "stop",
+}
+MENU_MOTS = {"menu", "accueil", "retour", "retour au menu", "revenir au menu"}
+REPRENDRE = {"reprendre", "reprends", "reprenez", "continuer", "continue", "continuons"}
+STOP = {"stop", "stop rappels", "arreter les rappels"}
+REPRENDRE_RAPPELS = {"reprendre les rappels", "start", "reactiver les rappels"}
 ANNULATIONS = {
     profil.TYPE: mf.MODIFICATION_ANNULEE,
     confirmation.TYPE: mf.CONFIRMATION_ANNULEE,
@@ -83,10 +93,10 @@ def decider(session: Session, conversation: Conversation, texte: str) -> Reponse
     parcours = onboarding.parcours_actif(session, conversation)
 
     if parcours is not None and parcours.statut == EN_COURS:
-        if mots == "menu":
+        if mots in MENU_MOTS:
             parcours.statut = EN_PAUSE
             return Reponse(mf.PAUSE, list(mf.MENU))
-        if mots == "annuler":
+        if mots in ANNULER:
             parcours.statut = ABANDONNE
             annule = ANNULATIONS.get(parcours.type, mf.ANNULE)
             return Reponse(annule, list(mf.MENU))
@@ -98,13 +108,20 @@ def decider(session: Session, conversation: Conversation, texte: str) -> Reponse
             return liaison.avancer(session, conversation, parcours, texte)
         return onboarding.avancer(session, conversation, parcours, texte)
 
+    if conversation.canal == CANAL_WHATSAPP and mots in STOP:
+        conversation.rappels_whatsapp = False
+        return Reponse(mf.WA_STOP)
+    if conversation.canal == CANAL_WHATSAPP and mots in REPRENDRE_RAPPELS:
+        conversation.rappels_whatsapp = True
+        return Reponse(mf.WA_RAPPELS_REPRIS, list(mf.MENU))
+
     sans_profil = conversation.entreprise_id is None
 
     if parcours is not None and parcours.statut == EN_PAUSE:
         reprise_modification = parcours.type == profil.TYPE and mots in MODIFIER
         reprise_confirmation = parcours.type == confirmation.TYPE and mots in CONFIRMER
         if (
-            mots == "reprendre" or reprise_modification or reprise_confirmation
+            mots in REPRENDRE or reprise_modification or reprise_confirmation
             or (sans_profil and mots in CHOIX_AVEC_PROFIL)
         ):
             parcours.statut = EN_COURS

@@ -404,7 +404,7 @@ def test_relier_whatsapp_a_un_profil(session, whatsapp_configure):
     assert email.type == CODE
     assert email.objet == mf.EMAIL_LIAISON_OBJET
     code = dernier_code(session, profil.email)
-    assert email.texte == mf.EMAIL_LIAISON_TEXTE.format(raison_sociale="Ets Relié", code=code) + "\n\n" + mf.EMAIL_SIGNATURE
+    assert email.texte == mf.EMAIL_LIAISON_TEXTE.format(entreprises="« Ets Relié »", code=code) + "\n\n" + mf.EMAIL_SIGNATURE
     assert code not in json.dumps(liaison_de(client).donnees)
     fin = client.ecrit(code)[-1]
     assert fin["interactive"]["body"]["text"] == mf.LIAISON_OK.format(raison_sociale="Ets Relié")

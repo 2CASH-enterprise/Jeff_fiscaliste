@@ -600,7 +600,7 @@ def test_colonnes():
 
 
 def test_version():
-    assert VERSION == "0.10.0"
+    assert TestClient(app).get("/sante").json()["version"] == VERSION
 
 
 # --- Cas limites (compléments) --------------------------------------------------------------------

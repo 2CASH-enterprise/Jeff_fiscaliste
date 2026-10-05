@@ -47,7 +47,11 @@ def conversation_whatsapp(session: Session, entreprise: Entreprise) -> Conversat
     """La conversation WhatsApp de l'entreprise la plus récemment active."""
     return session.scalars(
         select(Conversation)
-        .where(Conversation.entreprise_id == entreprise.id, Conversation.canal == CANAL_WHATSAPP)
+        .where(
+            Conversation.entreprise_id == entreprise.id,
+            Conversation.canal == CANAL_WHATSAPP,
+            Conversation.rappels_whatsapp.is_(True),
+        )
         .order_by(Conversation.dernier_message_client_le.desc().nulls_last(), Conversation.cree_le.desc())
     ).first()
 
