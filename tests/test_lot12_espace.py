@@ -780,7 +780,7 @@ def test_fiche_un_numero_sans_rappel_detaille(session):
     session.add(Conversation(canal=CANAL_WHATSAPP, identifiant_externe="2376" + uuid.uuid4().hex[:8], entreprise_id=e.id))
     session.flush()
     fiche = donnees.fiche(session, e)
-    assert [actifs for _, actifs in fiche.whatsapp] == [True]
+    assert [actifs for _, _, actifs in fiche.whatsapp] == [True]
     assert [l for l, _, _ in fiche.lignes][:2] == ["Raison sociale", "NIU"]
     assert all(libelle != "Adresse email" for libelle, _, _ in fiche.lignes)
 

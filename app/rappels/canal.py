@@ -3,7 +3,7 @@
 Décisions des lots 8 et 10 :
 - conversation WhatsApp ouverte depuis moins de 24 h → WhatsApp, message libre (gratuit) ;
 - sinon, rappel prioritaire (J-2) et moins de 5 messages prioritaires ce mois-ci → WhatsApp, modèle Meta ;
-- sinon → email si l'adresse est confirmée, sinon la bulle (repli).
+- sinon → email si l'adresse est confirmée et les rappels par email actifs (lot 14), sinon la bulle (repli).
 """
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -33,7 +33,7 @@ class Choix:
 
 
 def canal_de_repli(entreprise: Entreprise) -> str:
-    if entreprise.email and entreprise.email_confirme_le is not None:
+    if entreprise.email and entreprise.email_confirme_le is not None and entreprise.rappels_email:
         return EMAIL
     return BULLE
 

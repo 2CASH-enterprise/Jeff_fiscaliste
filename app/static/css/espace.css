@@ -202,3 +202,13 @@ a.esp-chiffre:hover { border-color: var(--esp-bleu-vif); }
 .esp-puces { margin: 0 0 6px; padding-left: 18px; }
 @media (min-width: 992px) { .esp-section-haut-ordi { margin-top: 0; } }
 .esp-etiquette-sous { align-self: flex-start; margin-top: 6px; }
+
+/* --- Lot 14 : préférences de rappels et historique ------------------------ */
+.esp-interrupteur { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--esp-gris-pale); margin: 0; }
+.esp-interrupteur:first-child { border-top: none; padding-top: 2px; }
+.esp-interrupteur-libelle { flex: 1; min-width: 0; color: var(--esp-doux); }
+.esp-interrupteur .btn { padding: 4px 12px; }
+.esp-message { display: flex; align-items: center; gap: 8px; }
+.esp-changement { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 2px; }
+.esp-avant { color: var(--esp-doux); text-decoration: line-through; }
+.esp-historique { max-width: 760px; }

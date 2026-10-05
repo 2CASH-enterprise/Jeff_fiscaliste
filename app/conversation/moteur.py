@@ -24,6 +24,7 @@ from app.conversation.normalisation import normaliser
 from app.conversation.reponse import Reponse
 from app.entreprises.models import Entreprise
 from app.rappels.livraison import rappels_a_remettre
+from app.rappels.preferences import changer_rappels_whatsapp
 
 LONGUEUR_MAX = 2000
 
@@ -109,10 +110,10 @@ def decider(session: Session, conversation: Conversation, texte: str) -> Reponse
         return onboarding.avancer(session, conversation, parcours, texte)
 
     if conversation.canal == CANAL_WHATSAPP and mots in STOP:
-        conversation.rappels_whatsapp = False
+        changer_rappels_whatsapp(session, conversation, False)
         return Reponse(mf.WA_STOP)
     if conversation.canal == CANAL_WHATSAPP and mots in REPRENDRE_RAPPELS:
-        conversation.rappels_whatsapp = True
+        changer_rappels_whatsapp(session, conversation, True)
         return Reponse(mf.WA_RAPPELS_REPRIS, list(mf.MENU))
 
     sans_profil = conversation.entreprise_id is None

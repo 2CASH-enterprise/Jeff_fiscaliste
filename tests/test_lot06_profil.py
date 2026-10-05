@@ -417,11 +417,11 @@ def test_table_des_modifications():
     colonnes = {c["name"]: c for c in inspecteur.get_columns("modifications_entreprise")}
     assert set(colonnes) == {
         "id", "entreprise_id", "conversation_id", "champ", "ancienne_valeur", "nouvelle_valeur", "cree_le",
-    }
+    } | {"origine", "session_espace_id"}  # Lot 14.
     assert colonnes["entreprise_id"]["nullable"] is False
     assert colonnes["champ"]["nullable"] is False
     cles = {fk["referred_table"] for fk in inspecteur.get_foreign_keys("modifications_entreprise")}
-    assert cles == {"entreprises", "conversations"}
+    assert cles == {"entreprises", "conversations", "sessions_espace"}  # sessions_espace : lot 14.
     assert "ix_modifications_entreprise_entreprise_id" in {i["name"] for i in inspecteur.get_indexes("modifications_entreprise")}
 
 

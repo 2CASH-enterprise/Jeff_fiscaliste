@@ -1,8 +1,20 @@
 {% extends "espace/base.html" %}
 {% from "espace/icones.html" import icone %}
 {% block titre %}Mon entreprise{% endblock %}
+{% macro interrupteur(libelle, canal, numero, actifs) %}
+<form method="post" action="{{ url_for('espace_rappels') }}" class="esp-interrupteur">
+  <input type="hidden" name="canal" value="{{ canal }}">
+  <input type="hidden" name="numero" value="{{ numero }}">
+  <input type="hidden" name="actifs" value="{{ '0' if actifs else '1' }}">
+  <span class="esp-interrupteur-libelle">{{ libelle }}</span>
+  <span class="esp-etiquette {{ 'esp-etiquette-vert' if actifs else 'esp-etiquette-gris' }}">{{ tx.ACTIFS if actifs else tx.ARRETES }}</span>
+  <button type="submit" class="btn btn-sm esp-bouton-secondaire">{{ tx.ARRETER if actifs else tx.REACTIVER }}<span class="visually-hidden"> : {{ libelle }}</span></button>
+</form>
+{% endmacro %}
 {% block contenu %}
 <h1 class="esp-titre">Mon entreprise</h1>
+{% if info %}<div class="esp-message esp-message-info" role="status">{{ icone("coche", 18) }}{{ info }}</div>{% endif %}
+{% if erreur %}<div class="esp-message esp-message-erreur" role="alert">{{ erreur }}</div>{% endif %}
 <div class="esp-grille">
   <div>
     <h2 class="esp-section esp-section-haut">{{ tx.PROFIL }}</h2>
@@ -23,7 +35,7 @@
     <section class="esp-carte">
       <dl class="esp-fiche">
         <div class="esp-fiche-ligne"><dt>{{ tx.EMAIL }}</dt><dd>{{ fiche.email }} <span class="esp-etiquette esp-etiquette-vert">{{ tx.EMAIL_CONFIRMEE }}</span></dd></div>
-        {% for numero, actifs in fiche.whatsapp %}
+        {% for identifiant, numero, actifs in fiche.whatsapp %}
         <div class="esp-fiche-ligne"><dt>{{ tx.WHATSAPP }}</dt><dd>{{ numero }} <span class="esp-etiquette esp-etiquette-vert">{{ tx.WHATSAPP_RELIE }}</span></dd></div>
         {% else %}
         <div class="esp-fiche-ligne"><dt>{{ tx.WHATSAPP }}</dt><dd>{{ tx.WHATSAPP_AUCUN }}</dd></div>
@@ -32,14 +44,28 @@
     </section>
     <h2 class="esp-section">{{ tx.RAPPELS }}</h2>
     <section class="esp-carte">
-      <dl class="esp-fiche">
-        {% for numero, actifs in fiche.whatsapp %}
-        <div class="esp-fiche-ligne"><dt>{{ tx.RAPPELS_WHATSAPP }}{% if fiche.whatsapp | length > 1 %} ({{ numero }}){% endif %}</dt>
-          <dd><span class="esp-etiquette {{ 'esp-etiquette-vert' if actifs else 'esp-etiquette-gris' }}">{{ tx.ACTIFS if actifs else tx.ARRETES }}</span></dd></div>
-        {% endfor %}
-        <div class="esp-fiche-ligne"><dt>{{ tx.RAPPELS_EMAIL }}</dt><dd><span class="esp-etiquette esp-etiquette-vert">{{ tx.ACTIFS }}</span></dd></div>
-      </dl>
+      {% for identifiant, numero, actifs in fiche.whatsapp %}
+      {{ interrupteur(tx.RAPPELS_WHATSAPP ~ ((" (" ~ numero ~ ")") if fiche.whatsapp | length > 1 else ""), "whatsapp", identifiant, actifs) }}
+      {% endfor %}
+      {{ interrupteur(tx.RAPPELS_EMAIL, "email", "", fiche.rappels_email) }}
+      <p class="esp-note mt-2 mb-0">{{ tx.RAPPELS_AIDE }}</p>
     </section>
   </div>
 </div>
+
+<h2 class="esp-section">{{ tx.HISTORIQUE }}</h2>
+<section class="esp-carte esp-historique">
+  {% for c in historique %}
+  <div class="esp-ligne esp-ligne-haute">
+    <span class="esp-ligne-texte">
+      <span class="esp-ligne-titre">{{ c.libelle }}</span>
+      <span class="esp-changement"><span class="esp-avant">{{ c.avant }}</span> {{ icone("suivant", 14) }} <strong>{{ c.apres }}</strong></span>
+      <span class="esp-ligne-sous">{{ c.quand }} · {{ c.origine }}</span>
+    </span>
+  </div>
+  {% else %}
+  <p class="mb-0">{{ tx.HISTORIQUE_VIDE }}</p>
+  {% endfor %}
+  {% if historique | length >= historique_max %}<p class="esp-note mt-2 mb-0">{{ tx.HISTORIQUE_LIMITE }}</p>{% endif %}
+</section>
 {% endblock %}

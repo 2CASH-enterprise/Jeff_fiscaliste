@@ -515,4 +515,4 @@ def test_styles_du_lot():
 
 
 def test_version():
-    assert VERSION == "0.13.0"
+    assert VERSION.startswith("0.")

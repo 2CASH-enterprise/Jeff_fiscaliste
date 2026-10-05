@@ -2,11 +2,16 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import BigInteger, Boolean, DateTime, ForeignKey, Integer, String, UniqueConstraint, func
+from sqlalchemy import BigInteger, Boolean, DateTime, ForeignKey, Integer, String, UniqueConstraint, func, text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.db import Base
+
+
+CONVERSATION = "conversation"
+COFFRE = "coffre"
+ORIGINES = (CONVERSATION, COFFRE)
 
 
 class Entreprise(Base):
@@ -30,6 +35,8 @@ class Entreprise(Base):
     # Adresse des rappels (lot 8) ; aucun email n'y part tant qu'elle n'est pas confirmée par code.
     email: Mapped[str | None] = mapped_column(String(254), default=None)
     email_confirme_le: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
+    # Lot 14 : le client peut couper les rappels par email depuis le coffre (repli sur la bulle).
+    rappels_email: Mapped[bool] = mapped_column(Boolean, default=True, server_default=text("true"))
     # Distributeur ou cabinet rattaché (phase P6) ; la table des distributeurs viendra plus tard.
     distributeur_id: Mapped[uuid.UUID | None] = mapped_column(default=None, index=True)
     cree_le: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
@@ -51,4 +58,7 @@ class ModificationEntreprise(Base):
     # Valeurs telles qu'en base (texte, nombre, oui/non ou vide), gardées avec leur type.
     ancienne_valeur: Mapped[object | None] = mapped_column(JSONB(none_as_null=True), default=None)
     nouvelle_valeur: Mapped[object | None] = mapped_column(JSONB(none_as_null=True), default=None)
+    # Lot 14 : d'où vient le changement, et quelle session du coffre l'a fait.
+    origine: Mapped[str] = mapped_column(String(20), default=CONVERSATION, server_default=CONVERSATION)
+    session_espace_id: Mapped[int | None] = mapped_column(ForeignKey("sessions_espace.id"), default=None)
     cree_le: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

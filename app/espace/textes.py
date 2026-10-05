@@ -121,6 +121,26 @@ EN_ATTENTE_VALIDATION = "En attente de validation"
 VALIDATION_DETAIL = "Cette règle n'a pas encore été validée par un fiscaliste. En cas de doute, demandez à Jeff."
 SANS_SOURCE = "Source à préciser par le fiscaliste."
 
+# --- Lot 14 : préférences de rappels et historique -----------------------------------------------
+
+ARRETER = "Arrêter"
+REACTIVER = "Réactiver"
+ENREGISTRE = "C'est enregistré."
+CHANGEMENT_IMPOSSIBLE = "Ce changement n'a pas pu être enregistré. Rechargez la page et réessayez."
+RAPPELS_AIDE = (
+    "Un rappel arrêté sur un canal part sur le suivant : WhatsApp, puis email, puis votre prochain message "
+    "dans la conversation avec Jeff. Les rappels déjà en attente suivent aussitôt votre choix."
+)
+HISTORIQUE = "Historique des modifications"
+HISTORIQUE_VIDE = "Aucune modification enregistrée pour l'instant."
+HISTORIQUE_LIMITE = "Les 50 modifications les plus récentes sont affichées."
+ORIGINE_COFFRE = "Coffre fiscal"
+ORIGINE_WHATSAPP = "WhatsApp"
+ORIGINE_CONVERSATION = "Conversation web"
+ORIGINE_INCONNUE = "Conversation avec Jeff"
+LIBELLE_RAPPELS_NUMERO = "Rappels WhatsApp ({numero})"
+CHAMPS_PREFERENCES = {"rappels_whatsapp": "Rappels WhatsApp", "rappels_email": "Rappels par email"}
+
 EMAIL_CONNEXION_OBJET = "Votre code de connexion Jeff"
 EMAIL_CONNEXION_TEXTE = (
     "Bonjour,\n\nVoici votre code pour ouvrir votre coffre fiscal Jeff ({entreprises}) : {code}\n\n"
@@ -143,4 +163,7 @@ TOUS = (
     *(l for _, l in FILTRES), *FILTRE_VIDE.values(), POINTS_ATTENTION, FREQUENCE, ECHEANCE, PROCHAINE_DATE, SOURCE,
     OUVRIR_SOURCE, POURQUOI, POURQUOI_A_CONFIRMER, D_APRES_PROFIL, INFORMATIONS_MANQUANTES, TOUTES_LES_ENTREPRISES,
     EN_ATTENTE_VALIDATION, VALIDATION_DETAIL, SANS_SOURCE,
+    ARRETER, REACTIVER, ENREGISTRE, CHANGEMENT_IMPOSSIBLE, RAPPELS_AIDE, HISTORIQUE, HISTORIQUE_VIDE,
+    HISTORIQUE_LIMITE, ORIGINE_COFFRE, ORIGINE_WHATSAPP, ORIGINE_CONVERSATION, ORIGINE_INCONNUE, LIBELLE_RAPPELS_NUMERO,
+    *CHAMPS_PREFERENCES.values(),
 )

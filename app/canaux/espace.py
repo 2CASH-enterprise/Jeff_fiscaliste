@@ -4,6 +4,7 @@ Les pages n'existent que si ESPACE_ACTIF=true. Connexion par code email, puis se
 30 jours gardée dans un cookie HttpOnly. Chaque page vérifie de nouveau que l'adresse de la
 session est toujours confirmée pour l'entreprise affichée.
 """
+import uuid
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
@@ -225,12 +226,53 @@ def accueil(request: Request, session: Session = Depends(session_requete)):
 
 
 @router.get("/entreprise", response_class=HTMLResponse, name="espace_entreprise")
-def entreprise(request: Request, session: Session = Depends(session_requete)):
+def entreprise(request: Request, info: str = "", session: Session = Depends(session_requete)):
     contexte, redirection = contexte_espace(request, session, "entreprise")
     if redirection:
         return redirection
     contexte["fiche"] = donnees.fiche(session, contexte["entreprise"])
+    contexte["historique"] = donnees.historique(session, contexte["entreprise"])
+    contexte["historique_max"] = donnees.HISTORIQUE_MAX
+    contexte["info"] = {"enregistre": tx.ENREGISTRE}.get(info)
+    contexte["erreur"] = {"impossible": tx.CHANGEMENT_IMPOSSIBLE}.get(info)
     return page(request, "entreprise.html", contexte)
+
+
+@router.post("/entreprise/rappels", name="espace_rappels")
+def changer_rappels(
+    request: Request,
+    canal: str = Form(""),
+    numero: str = Form(""),
+    actifs: str = Form(""),
+    session: Session = Depends(session_requete),
+):
+    """Un interrupteur du coffre : rappels par email, ou rappels WhatsApp d'un numéro relié à l'entreprise."""
+    from app.conversation.models import CANAL_WHATSAPP, Conversation
+    from app.entreprises.models import COFFRE
+    from app.rappels import preferences
+
+    ouverte = session_du_navigateur(request, session)
+    contexte, redirection = contexte_espace(request, session, "entreprise")
+    if redirection:
+        return redirection
+    entreprise_affichee = contexte["entreprise"]
+    if actifs not in ("0", "1"):
+        return aller(request, "espace_entreprise", info="impossible")
+    voulu = actifs == "1"
+    if canal == "email":
+        preferences.changer_rappels_email(session, entreprise_affichee, voulu, COFFRE, ouverte.id)
+    elif canal == "whatsapp":
+        try:
+            conversation = session.get(Conversation, uuid.UUID(numero))
+        except ValueError:
+            conversation = None
+        if conversation is None or conversation.entreprise_id != entreprise_affichee.id or conversation.canal != CANAL_WHATSAPP:
+            return aller(request, "espace_entreprise", info="impossible")
+        preferences.changer_rappels_whatsapp(session, conversation, voulu, COFFRE, ouverte.id)
+    else:
+        return aller(request, "espace_entreprise", info="impossible")
+    session.commit()
+    return aller(request, "espace_entreprise", info="enregistre")
 
 
 @router.get("/echeances", response_class=HTMLResponse, name="espace_echeances")

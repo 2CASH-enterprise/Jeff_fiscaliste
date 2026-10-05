@@ -85,7 +85,8 @@ def tableau(session: Session, entreprise: Entreprise, jour: date | None = None) 
 class Fiche:
     lignes: list[tuple[str, str, bool]]  # libellé, valeur, verrouillée
     email: str | None
-    whatsapp: list[tuple[str, bool]]  # numéro masqué, rappels actifs
+    whatsapp: list[tuple[str, str, bool]]  # identifiant de la conversation, numéro masqué, rappels actifs
+    rappels_email: bool = True
 
 
 def masquer(numero: str) -> str:
@@ -112,7 +113,8 @@ def fiche(session: Session, entreprise: Entreprise) -> Fiche:
     return Fiche(
         lignes=lignes,
         email=entreprise.email,
-        whatsapp=[(masquer(c.identifiant_externe), c.rappels_whatsapp) for c in conversations],
+        whatsapp=[(str(c.id), masquer(c.identifiant_externe), c.rappels_whatsapp) for c in conversations],
+        rappels_email=entreprise.rappels_email,
     )
 
 
@@ -322,3 +324,87 @@ def obligations(session: Session, entreprise: Entreprise, jour: date | None = No
         a_confirmer=[o for regle, o in fiches if regle.type == OBLIGATION and o.incertaine],
         alertes=[o for regle, o in fiches if regle.type == ALERTE and not o.incertaine],
     )
+
+
+# --- Historique des modifications (lot 14) --------------------------------------------------------
+
+HISTORIQUE_MAX = 50
+
+
+@dataclass
+class Changement:
+    quand: str  # « lundi 5 octobre 2026 à 18 h 40 », heure de la juridiction
+    libelle: str
+    avant: str
+    apres: str
+    origine: str
+
+
+def libelle_du_champ(champ: str) -> str:
+    from app.espace import textes as tx
+
+    if champ in onboarding.PAR_CLE:
+        return onboarding.PAR_CLE[champ].libelle
+    return tx.CHAMPS_PREFERENCES.get(champ, champ)
+
+
+def valeur_historique(champ: str, valeur) -> str:
+    """Valeur telle qu'enregistrée en base, affichée comme dans le profil."""
+    from app.espace import textes as tx
+
+    if champ in tx.CHAMPS_PREFERENCES:
+        return tx.ACTIFS if valeur else tx.ARRETES
+    if champ == "assujetti_tva_declare":
+        valeur = "inconnu" if valeur is None else ("oui" if valeur else "non")
+    return valeur_affichee(champ, valeur)
+
+
+def origine_du_changement(modification, canaux: dict) -> str:
+    from app.entreprises.models import COFFRE
+    from app.espace import textes as tx
+
+    if modification.origine == COFFRE:
+        return tx.ORIGINE_COFFRE
+    canal = canaux.get(modification.conversation_id)
+    if canal == CANAL_WHATSAPP:
+        return tx.ORIGINE_WHATSAPP
+    return tx.ORIGINE_CONVERSATION if canal else tx.ORIGINE_INCONNUE
+
+
+def quand(instant, fuseau: str) -> str:
+    from zoneinfo import ZoneInfo
+
+    local = instant.astimezone(ZoneInfo(fuseau))
+    return f"{formater_date(local.date())} à {local.hour} h {local.minute:02d}"
+
+
+def historique(session: Session, entreprise: Entreprise) -> list[Changement]:
+    from app.entreprises.models import ModificationEntreprise
+    from app.espace import textes as tx
+
+    modifications = list(session.scalars(
+        select(ModificationEntreprise)
+        .where(ModificationEntreprise.entreprise_id == entreprise.id)
+        .order_by(ModificationEntreprise.cree_le.desc(), ModificationEntreprise.id.desc())
+        .limit(HISTORIQUE_MAX)
+    ))
+    identifiants = {m.conversation_id for m in modifications if m.conversation_id}
+    conversations = {
+        c.id: c for c in session.scalars(select(Conversation).where(Conversation.id.in_(identifiants)))
+    } if identifiants else {}
+    canaux = {i: c.canal for i, c in conversations.items()}
+    fuseau = session.get(Juridiction, entreprise.juridiction_code).fuseau_horaire
+    changements = []
+    for m in modifications:
+        libelle = libelle_du_champ(m.champ)
+        conversation = conversations.get(m.conversation_id)
+        if m.champ == "rappels_whatsapp" and conversation is not None:
+            libelle = tx.LIBELLE_RAPPELS_NUMERO.format(numero=masquer(conversation.identifiant_externe))
+        changements.append(Changement(
+            quand=quand(m.cree_le, fuseau),
+            libelle=libelle,
+            avant=valeur_historique(m.champ, m.ancienne_valeur),
+            apres=valeur_historique(m.champ, m.nouvelle_valeur),
+            origine=origine_du_changement(m, canaux),
+        ))
+    return changements
