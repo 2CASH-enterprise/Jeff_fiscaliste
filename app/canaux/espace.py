@@ -126,7 +126,7 @@ def demander_code(request: Request, email: str = Form(""), session: Session = De
     if adresse is None:
         return page(request, "connexion.html", {"info": None, "erreur": tx.ERR_EMAIL, "email": email[:254]}, 400)
     try:
-        demande = connexion.demander_code(session, adresse)
+        demande = connexion.demander_code(session, adresse, request.client.host if request.client else None)
     except connexion.TropDeDemandes:
         return page(request, "connexion.html", {"info": None, "erreur": tx.TROP_DE_DEMANDES, "email": adresse}, 429)
     session.commit()

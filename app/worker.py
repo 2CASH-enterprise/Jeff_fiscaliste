@@ -14,6 +14,8 @@ celery_app.conf.beat_schedule = {
     "envoyer-emails": {"task": "jeff.envoyer_emails", "schedule": crontab()},
     # Lot 9 : reprise des réponses WhatsApp restées en attente.
     "envoyer-whatsapp": {"task": "jeff.envoyer_whatsapp", "schedule": crontab()},
+    # Lot 17 : chaque nuit à 4 h, les demandes de code de plus de 7 jours sont effacées.
+    "nettoyer-espace": {"task": "jeff.nettoyer_espace", "schedule": crontab(hour=4, minute=0)},
 }
 
 
@@ -67,6 +69,24 @@ def tache_envoyer_whatsapp() -> dict:
     try:
         bilan = envoyer_en_attente(session)
         return {"envoyes": bilan.envoyes, "echecs": bilan.echecs, "desactive": bilan.desactive}
+    except Exception:
+        session.rollback()
+        raise
+    finally:
+        session.close()
+
+
+@celery_app.task(name="jeff.nettoyer_espace")
+def tache_nettoyer_espace() -> int:
+    from app import models as _modeles  # noqa: F401 (toutes les tables connues)
+    from app.core.db import get_session
+    from app.espace.connexion import nettoyer
+
+    session = get_session()
+    try:
+        effacees = nettoyer(session)
+        session.commit()
+        return effacees
     except Exception:
         session.rollback()
         raise

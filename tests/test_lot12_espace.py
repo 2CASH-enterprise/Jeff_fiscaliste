@@ -828,7 +828,7 @@ def test_requirements_formulaires():
 def test_tables_du_lot():
     inspecteur = inspect(get_engine())
     colonnes = {c["name"]: c for c in inspecteur.get_columns("demandes_connexion")}
-    assert set(colonnes) == {"id", "email", "empreinte", "expire_le", "essais", "renvois", "statut", "cree_le"}
+    assert set(colonnes) == {"id", "email", "empreinte", "expire_le", "essais", "renvois", "statut", "cree_le"} | {"ip"}  # ip : lot 17
     assert colonnes["empreinte"]["nullable"] is True and colonnes["statut"]["nullable"] is False
     colonnes = {c["name"]: c for c in inspecteur.get_columns("sessions_espace")}
     assert set(colonnes) == {"id", "empreinte_jeton", "email", "entreprise_id", "user_agent", "cree_le", "expire_le",
@@ -838,7 +838,7 @@ def test_tables_du_lot():
     assert [u["column_names"] for u in uniques] == [["empreinte_jeton"]]
     [cle] = inspecteur.get_foreign_keys("sessions_espace")
     assert cle["referred_table"] == "entreprises"
-    assert {i["name"] for i in inspecteur.get_indexes("demandes_connexion")} == {"ix_demandes_connexion_email"}
+    assert {i["name"] for i in inspecteur.get_indexes("demandes_connexion")} == {"ix_demandes_connexion_email", "ix_demandes_connexion_ip"}
     assert {i["name"] for i in inspecteur.get_indexes("sessions_espace")} == {
         "ix_sessions_espace_email", "uq_sessions_espace_empreinte_jeton"}
     [verif] = inspecteur.get_check_constraints("demandes_connexion")

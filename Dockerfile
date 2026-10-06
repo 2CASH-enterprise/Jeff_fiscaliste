@@ -15,4 +15,6 @@ RUN useradd --create-home jeff \
     && chown jeff:jeff /data/documents
 USER jeff
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Lot 17 : derrière nginx, l'adresse réelle du visiteur et le https viennent des en-têtes du proxy.
+# Le port n'est publié que sur 127.0.0.1 : seuls nginx et le tunnel SSH peuvent les poser.
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips", "*"]

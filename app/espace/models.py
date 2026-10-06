@@ -22,6 +22,8 @@ class DemandeConnexion(Base):
     # Identifiant aléatoire : c'est lui que garde le cookie du navigateur entre l'email et le code.
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     email: Mapped[str] = mapped_column(String(254), index=True)
+    # Lot 17 : adresse IP du demandeur (limite de demandes par IP, coffre public).
+    ip: Mapped[str | None] = mapped_column(String(45), default=None, index=True)
     # Vide si l'adresse n'est confirmée pour aucune entreprise : aucun code ne peut alors convenir.
     empreinte: Mapped[str | None] = mapped_column(String(64), default=None)
     expire_le: Mapped[datetime] = mapped_column(DateTime(timezone=True))

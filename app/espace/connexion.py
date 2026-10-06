@@ -23,6 +23,8 @@ from app.espace.models import ABANDONNEE, EN_COURS, UTILISEE, DemandeConnexion, 
 
 DUREE_SESSION = timedelta(days=30)
 DEMANDES_PAR_HEURE = 5
+DEMANDES_PAR_IP_ET_PAR_HEURE = 20  # Lot 17 : un bureau partagé passe, un robot non.
+IP_MAX = 45
 JETON_MAX = 100
 USER_AGENT_MAX = 200
 
@@ -62,16 +64,22 @@ def envoyer_code(session: Session, demande: DemandeConnexion) -> None:
         email_connexion(session, entreprises, code)
 
 
-def demander_code(session: Session, email: str) -> DemandeConnexion:
+def demandes_recentes(session: Session, critere) -> int:
     depuis = maintenant() - timedelta(hours=1)
-    recentes = session.scalar(
-        select(func.count()).select_from(DemandeConnexion).where(
-            DemandeConnexion.email == email, DemandeConnexion.cree_le > depuis
-        )
+    return session.scalar(
+        select(func.count()).select_from(DemandeConnexion).where(critere, DemandeConnexion.cree_le > depuis)
     )
-    if recentes >= DEMANDES_PAR_HEURE:
+
+
+def demander_code(session: Session, email: str, ip: str | None = None) -> DemandeConnexion:
+    if demandes_recentes(session, DemandeConnexion.email == email) >= DEMANDES_PAR_HEURE:
         raise TropDeDemandes
-    demande = DemandeConnexion(id=uuid.uuid4(), email=email, essais=0, renvois=0, statut=EN_COURS, expire_le=maintenant())
+    ip = (ip or "")[:IP_MAX] or None
+    if ip and demandes_recentes(session, DemandeConnexion.ip == ip) >= DEMANDES_PAR_IP_ET_PAR_HEURE:
+        raise TropDeDemandes
+    demande = DemandeConnexion(
+        id=uuid.uuid4(), email=email, ip=ip, essais=0, renvois=0, statut=EN_COURS, expire_le=maintenant()
+    )
     session.add(demande)
     envoyer_code(session, demande)
     session.flush()
@@ -181,3 +189,17 @@ def choisir(session: Session, ouverte: SessionEspace, identifiant: str) -> bool:
 
 def fermer(ouverte: SessionEspace) -> None:
     ouverte.fermee_le = maintenant()
+
+
+# --- Nettoyage (lot 17) -------------------------------------------------------------------------
+
+GARDER_DEMANDES = timedelta(days=7)
+
+
+def nettoyer(session: Session) -> int:
+    """Efface les demandes de code de plus de 7 jours. Les sessions restent : elles signent l'historique."""
+    from sqlalchemy import delete
+
+    resultat = session.execute(delete(DemandeConnexion).where(DemandeConnexion.cree_le < maintenant() - GARDER_DEMANDES))
+    session.flush()
+    return resultat.rowcount
